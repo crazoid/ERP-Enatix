@@ -1,0 +1,135 @@
+@namespace "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+mx|Application {
+	backgroundColor: #cccccc;
+	themeColor: #ffffff;
+}
+mx|Button {
+	themeColor: #ffffff;
+}
+
+mx|ComboBox {
+	selectionColor: #999999;
+	textSelectedColor: #ffffff;
+	rollOverColor: #cccccc;
+	textRollOverColor: #000000;
+	themeColor: #ffffff;
+	alternatingItemColors: #f7f7f7, #ededed;
+	fontWeight: normal;
+	dropdownStyleName: "myComboBoxDropDowns";
+}
+
+.myComboBoxDropDowns {
+	cornerRadius: 2;
+	borderThickness: 2;
+	shadowDirection: right;
+}
+
+mx|Panel {
+	borderColor: #cccccc;
+	borderAlpha: 0;
+	roundedBottomCorners: false;
+	titleStyleName: "mypanelTitle";
+}
+
+.mypanelTitle {
+	fontWeight: bold;
+}
+
+mx|TitleWindow {
+	borderColor: #cccccc;
+	borderAlpha: 1.0;
+	roundedBottomCorners: false;
+	titleStyleName: "mypanelTitle";
+}
+
+mx|DataGrid {
+	backgroundColor: #ffffff;
+	alternatingItemColors: #f7f7f7, #ededed;
+	headerColors: #000000, #000000;
+	horizontalGridLines: false;
+	horizontalGridLineColor: #ffffff;
+	verticalGridLines: true;
+	useRollOver: true;
+	rollOverColor: #cccccc;
+	textRollOverColor: #0b333c;
+	selectionColor: #999999;
+	color: #000000;
+	textSelectedColor: #ffffff;
+	dropShadowEnabled: true;
+	shadowDistance: 2;
+	shadowDirection: right;
+	dropShadowColor: #000000;
+	fontWeight: normal;
+	headerStyleName: "mydataGridHeaderStyle";
+}
+
+.mydataGridHeaderStyle {
+	color: #ffffff;
+	fontWeight: bold;
+	fontStyle: normal;
+	textDecoration: none;
+	letterSpacing: 0;
+	textAlign: center;
+	verticalAlign: middle;
+}
+
+mx|List {
+	backgroundAlpha: 1;
+	backgroundColor: #ffffff;
+	rollOverColor: #cccccc;
+	textRollOverColor: #000000;
+	borderStyle: solid;
+	borderThickness: 4;
+	borderColor: #cccccc;
+	selectionColor: #cccccc;
+	color: #000000;
+	textSelectedColor: #ffffff;
+	textIndent: 0;
+	selectionDuration: 250;
+	dropShadowEnabled: true;
+	shadowDirection: right;
+	cornerRadius: 2;
+}
+
+.closeBtn {
+	upSkin:        Embed('/assets/img/closeButton.png');
+	overSkin:      Embed('/assets/img/closeButton.png');
+	downSkin:      Embed('/assets/img/closeButton.png');
+	disabledSkin:  Embed('/assets/img/closeButton.png');
+}
+.increaseBtn {
+	upSkin:        Embed('/assets/img/increaseButton.png');
+	overSkin:      Embed('/assets/img/increaseButton.png');
+	downSkin:      Embed('/assets/img/increaseButton.png');
+	disabledSkin:  Embed('/assets/img/increaseButton.png');
+}
+.decreaseBtn {
+	upSkin:        Embed('/assets/img/decreaseButton.png');
+	overSkin:      Embed('/assets/img/decreaseButton.png');
+	downSkin:      Embed('/assets/img/decreaseButton.png');
+	disabledSkin:  Embed('/assets/img/decreaseButton.png');
+}
+.minimizeBtn {
+	upSkin:        Embed('/assets/img/minimizeButton.png');
+	overSkin:      Embed('/assets/img/minimizeButton.png');
+	downSkin:      Embed('/assets/img/minimizeButton.png');
+	disabledSkin:  Embed('/assets/img/minimizeButton.png');
+}
+.resizeHndlr {
+	upSkin:        Embed('/assets/img/resizeHandler.png');
+	overSkin:      Embed('/assets/img/resizeHandler.png');
+	downSkin:      Embed('/assets/img/resizeHandler.png');
+	disabledSkin:  Embed('/assets/img/resizeHandler.png');
+}
+mx|Grid
+{
+	borderStyle: solid;
+	cornerRadius: 5;
+	paddingBottom: 0;
+	paddingLeft: 0;
+	paddingRight: 0;
+	paddingTop: 0;
+	textAlign: center;
+}

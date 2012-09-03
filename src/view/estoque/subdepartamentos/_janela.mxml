@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				width="408" height="208" close="PopUpManager.removePopUp(this);" creationComplete="init();"
+				layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.DataGrid;
+			import mx.rpc.events.FaultEvent;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.controls.Alert;
+				
+			[Bindable]
+			public var selected:Object;			
+						
+			private function init():void{
+				if(this.title=="EDITAR"){ codigo.setFocus(); }		
+				if(this.title=="NOVO"){ codigo.setFocus(); }
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+					if(evt == null) dispatchEvent(e);				
+					PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10" width="368" height="114">
+		<mx:FormItem label="Código">
+			<mx:TextInput id="codigo" width="56" text="{selected.ID}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Descrição">
+			<mx:TextInput id="descricao" width="221" text="{selected.DESCRICAO}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Margem">
+			<mx:HBox width="80">
+				<mx:TextInput id="margem" width="46" text="{selected.MARGEM}"/>
+				<mx:Label height="22" text="%"/>
+			</mx:HBox>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

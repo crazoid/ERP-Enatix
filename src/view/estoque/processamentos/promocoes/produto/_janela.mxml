@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				width="688" height="366" close="PopUpManager.removePopUp(this);" creationComplete="init();"
+				layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.DataGrid;
+			import mx.rpc.events.FaultEvent;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.controls.Alert;
+			
+			[Bindable]
+			public var selected:Object;			
+			
+			private function init():void{
+				if(this.title=="EDITAR"){ codigo.setFocus(); }
+				
+				if(this.title=="NOVO"){ codigo.setFocus(); }
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+				if(evt == null) dispatchEvent(e);				
+				PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10" width="648" height="255">
+		<mx:HBox width="569" horizontalAlign="right">
+			<mx:FormItem label="REDUZIDO">
+				<mx:TextInput id="descricao0" width="185" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:FormItem label="CODBARFAB">
+				<mx:TextInput id="descricao1" width="185" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:FormItem width="568" label="DESCRIÇÃO">
+			<mx:TextInput id="descricao2" width="474" text="{selected.DESCRICAO}"/>
+		</mx:FormItem>
+		<mx:HBox width="560" horizontalAlign="right">
+			<mx:FormItem x="38" width="211" label="DEPTO">
+				<mx:TextInput id="descricao4" width="155" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:FormItem width="200" label="SUBDEPTO">
+				<mx:TextInput id="descricao5" width="122" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:FormItem label="REF">
+				<mx:TextInput id="codigo" width="56" text="{selected.ID}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:FormItem label="FORNECEDOR">
+			<mx:TextInput id="descricao3" width="221" text="{selected.DESCRICAO}"/>
+		</mx:FormItem>
+		<mx:HBox width="315" horizontalAlign="right">
+			<mx:FormItem label="GRADE">
+				<mx:TextInput id="descricao6" width="69" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:FormItem label="UNIDADE">
+				<mx:TextInput id="descricao7" width="76" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:HBox width="452" horizontalAlign="right">
+			<mx:FormItem label="DT PCUSTO">
+				<mx:TextInput id="descricao8" width="70" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:HBox x="189" width="157" horizontalAlign="right">
+			<mx:FormItem label="MCUSTO">
+					<mx:TextInput id="margem" width="46" text="{selected.MARGEM}"/>
+			</mx:FormItem>
+				<mx:FormItem height="22" label="%"/>
+			</mx:HBox>
+			<mx:FormItem label="PCUSTO">
+				<mx:TextInput id="descricao9" width="50" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:HBox width="612" horizontalAlign="right">
+			<mx:HBox width="157" horizontalAlign="right">
+			<mx:FormItem label="MVENDA">
+					<mx:TextInput id="margem0" width="46" text="{selected.MARGEM}"/>
+			</mx:FormItem>
+				<mx:FormItem height="22" label="%"/>
+			</mx:HBox>
+			<mx:FormItem label="PVENDA">
+				<mx:TextInput id="descricao12" width="53" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:HBox width="153" horizontalAlign="right">
+			<mx:FormItem label="DESC">
+					<mx:TextInput id="margem2" width="46" text="{selected.MARGEM}"/>
+			</mx:FormItem>
+				<mx:FormItem height="22" label="%"/>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HBox width="612" horizontalAlign="right">
+			<mx:FormItem label="PPRAZO">
+				<mx:TextInput id="descricao10" width="53" text="{selected.DESCRICAO}"/>
+			</mx:FormItem>
+			<mx:HBox width="153" horizontalAlign="right">
+			<mx:FormItem label="DESC">
+					<mx:TextInput id="margem4" width="46" text="{selected.MARGEM}"/>
+			</mx:FormItem>
+				<mx:FormItem height="22" label="%"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>	
+</mx:TitleWindow>

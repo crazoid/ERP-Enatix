@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="466" height="575" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.ArrayCollection;
+			import com.hillelcoren.utils.StringUtils;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.utils.ArrayUtil;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			[Bindable]
+			public var dpParcelas:ArrayCollection = new ArrayCollection();
+			
+			public var codigos:Object;
+			
+			private function init():void{
+				if(this.title=="EDITAR"){ 
+					cNota.setFocus();
+					ComboService.fornecedor();
+					ComboService.localizador();
+					ComboService.grupo();
+					ComboService.parcela(selected.NOTA,selected.FORNECEDOR);
+					bAdicionar.enabled=true;
+					bEditar.enabled=true;
+					bRemover.enabled=true;
+				}
+				
+				if(this.title=="NOVO"){ 
+					dataLancto.selectedDate = new Date();
+					cNota.setFocus();
+					ComboService.fornecedor();
+					ComboService.localizador();
+					ComboService.grupo();
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				if(dataLancto.text=="")
+					Alert.show("Digite uma data de lançamento.","Alerta!",Alert.OK,this,alertListenerLancamento);
+				else if(cNota.text=="")
+					Alert.show("Digite uma nota.","Alerta!",Alert.OK,this,alertListenerNota);						
+				else if(acFornecedores.text=="")
+					Alert.show("Digite um fornecedor.","Alerta!",Alert.OK,this,alertListenerFornecedor);
+				else if(acLocalizadores.text=="")
+					Alert.show("Digite um localizador.","Alerta!",Alert.OK,this,alertListenerLocalizador);
+				else if(acGrupos.text=="")
+					Alert.show("Digite um grupo.","Alerta!",Alert.OK,this,alertListenerGrupo);				
+				else if(dataNF.text=="")
+					Alert.show("Digite uma data para nota.","Alerta!",Alert.OK,this,alertListenerDataNF);
+				else if (dpParcelas.length==0)
+					Alert.show("Ao menos uma parcela deve ser inserida, deseja inserir?","Alerta!",3,this,alertListener);
+				else if(this.title=="NOVO"){
+					var t:Number=0;
+					for(var i:String in dpParcelas){
+						t += parseFloat(dpParcelas[i].VALOR);
+					}
+					var total:Boolean = true;
+					if(t<Number(vlTotal.text)) total=false;
+					if(t>Number(vlTotal.text)) total=false;	
+					if(!total) {
+						Alert.show("Valor total ("+Number(vlTotal.text)+") não coincide com a soma das parcelas ("+t+")","Alerta!",Alert.OK,this,alertListenerParcelas);
+					} else {
+						if(evt == null) {	
+							dispatchEvent(e);
+						}				
+						PopUpManager.removePopUp(this);	
+					}
+				} else {
+					if(evt == null) {	
+						dispatchEvent(e);
+					}				
+					PopUpManager.removePopUp(this);	
+				}
+			}	
+			
+			public function novo():void
+			{
+				var popUp:_adiciona;
+				popUp = PopUpManager.createPopUp(this,_adiciona,true) as _adiciona;
+				popUp.title="ADICIONAR";
+				var o:Array = new Array();
+				var maior:int = 0;
+				for(var a:int;a<dgParcelas.dataProvider.length;a++){
+					maior = dgParcelas.dataProvider[a].PARCELA>maior ? dgParcelas.dataProvider[a].PARCELA : maior;
+				}
+				trace(maior);
+				
+				o['NOTA'] = cNota.text;
+				o['PARCELA'] = maior+1;
+				o['DATA_VENCTO'] = "";
+				o['FORNECEDOR'] = acFornecedores.selectedItem.ID;
+				o['FORNECEDOR_DESC'] = acFornecedores.selectedItem.DESCRICAO;
+				popUp.s = o;
+				
+				popUp.addEventListener("Ouvidor",adiciona);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function adiciona (event:Event):void {
+				var o:Array = new Array();
+				o['NOTA'] = cNota.text;
+				o['VALOR'] = (event.target as _adiciona).valor.text;
+				o['DATA_VENCTO'] = (event.target as _adiciona).cData.text;
+				o['PARCELA'] = (event.target as _adiciona).nsParcela.value;
+				o['FORNECEDOR'] = acFornecedores.selectedItem.ID;
+				o['FORNECEDOR_DESC'] = acFornecedores.selectedItem.DESCRICAO;
+				dpParcelas.addItem(o);
+				bRemover.enabled=false;
+				bEditar.enabled=false;
+			}
+			
+			public function edita(dg:DataGrid):void
+			{
+				var popUp:_adiciona;
+				popUp = PopUpManager.createPopUp(this,_adiciona,true) as _adiciona;
+				popUp.s = dg.selectedItem;
+				popUp.title="ADICIONAR";
+				popUp.maior=dg.selectedItem.PARCELA;
+				popUp.addEventListener("Ouvidor",editar);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function editar (event:Event):void {
+				var o:Array = new Array();
+				o['NOTA'] = (event.target as _adiciona).s.NOTA;
+				o['VALOR'] = (event.target as _adiciona).valor.text;
+				o['DATA_VENCTO'] = (event.target as _adiciona).cData.text;
+				o['PARCELA'] = (event.target as _adiciona).nsParcela.value;
+				o['FORNECEDOR'] = acFornecedores.selectedItem.ID;
+				o['FORNECEDOR_DESC'] = acFornecedores.selectedItem.DESCRICAO;
+				dpParcelas[dgParcelas.selectedIndex] = o;
+				bRemover.enabled=false;
+				bEditar.enabled=false;
+			}
+			
+			protected function cNota_keyUpHandler(event:KeyboardEvent):void
+			{
+				bAdicionar.enabled = cNota.text.length>0? true : false;				
+			}
+			
+			public function alertListener(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+				if (eventObj.detail==Alert.NO) { PopUpManager.removePopUp(this); }
+			}
+			
+			public function alertListenerLancamento(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { dataLancto.setFocus();	}
+			}
+
+			public function alertListenerParcelas(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { vlTotal.setFocus(); }
+			}
+			public function alertListenerNota(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { cNota.setFocus();	}
+			}
+			
+			public function alertListenerFornecedor(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { acFornecedores.setFocus();	}
+			}
+			
+			public function alertListenerLocalizador(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { acLocalizadores.setFocus();	}
+			}
+			
+			public function alertListenerGrupo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { acGrupos.setFocus();	}
+			}
+			
+			public function alertListenerDataNF(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { dataNF.setFocus();	}
+			}
+
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			public function dropDownLabelFunction_Fornecedores( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acFornecedores.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acFornecedores.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_Localizadores( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acLocalizadores.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acLocalizadores.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_Grupos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acGrupos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acGrupos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			private function resultHandlerComboFornecedor(event:ResultEvent):void{
+				if(this.title=="NOVO"){
+					acFornecedores.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				}
+				if(this.title=="EDITAR"){
+					acFornecedores.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+					for(var j:int=0;j<acFornecedores.dataProvider.length;j++){
+						if(selected.FORNECEDOR==(event.result[j]).ID){
+							acFornecedores.selectedItem = event.result[j];
+						}
+					}
+				}
+			}
+			
+			private function resultHandlerComboLocalizador(event:ResultEvent):void{
+				acLocalizadores.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(this.title=="NOVO"){
+					for(var j:int=0;j<acLocalizadores.dataProvider.length;j++){
+						if(event.result[j].ID==0){
+							acLocalizadores.selectedItem = event.result[j];
+						}
+					}
+				}
+				if(this.title=="EDITAR"){
+					for(var i:int=0;i<acLocalizadores.dataProvider.length;i++){
+						if(selected.LOCALIZADOR==(event.result[i]).ID){
+							acLocalizadores.selectedItem = event.result[i];
+						}
+					}
+				}
+			}
+			
+			private function resultHandlerComboGrupo(event:ResultEvent):void{
+				acGrupos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(this.title=="EDITAR"){
+					for(var i:int=0;i<acGrupos.dataProvider.length;i++){
+						if(selected.GRUPO==(event.result[i]).ID){
+							acGrupos.selectedItem = event.result[i];
+						}
+					}
+				}
+			}
+			
+			private function resultHandlerDataGridParcelas(event:ResultEvent):void{
+				dpParcelas = new ArrayCollection(ArrayUtil.toArray(event.result));
+				for(var a:int;a<dpParcelas.length;a++){
+					if(dpParcelas[a].DATA_VENCTO==selected.DATA_VENCTO)
+						dgParcelas.selectedIndex = a;
+				}
+				//dgParcelas.selectedIndex=0;
+				var t:Number=0;
+				for(var i:String in dpParcelas){
+					t += parseFloat(dpParcelas[i].VALOR);
+				}
+				var tmp:String = t.toString();
+				tmp = tmp.replace(".",",");
+				vlTotal.text = moneyFormatter.format(tmp);
+			}
+			
+			private function converteData(d:String):String{
+				return d.substr(3,2)+"/"+d.substr(0,2)+"/"+d.substr(6,4);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:CurrencyFormatter id="moneyFormatter" 
+						  precision="2" 
+						  rounding="none" 
+						  decimalSeparatorTo="," 
+						  thousandsSeparatorTo="." 
+						  useThousandsSeparator="true" 
+						  useNegativeSign="true" 
+						  currencySymbol="R$ " 
+						  alignSymbol="left"/> 
+	<mx:RemoteObject id="ComboService" destination="amfphp" source="ComboService" showBusyCursor="true">
+		<mx:method id="fornecedor" name="fornecedor" result="resultHandlerComboFornecedor(event)"/>
+		<mx:method id="localizador" name="localizador" result="resultHandlerComboLocalizador(event)"/>
+		<mx:method id="grupo" name="grupo" result="resultHandlerComboGrupo(event)"/>
+		<mx:method id="parcela" name="parcela" result="resultHandlerDataGridParcelas(event)"/>
+	</mx:RemoteObject>
+
+	<mx:Form x="10" y="10" width="429" height="464">
+		<mx:FormItem label="Lançamento">
+			<components2:dateField id="dataLancto" selectedDate="{new Date(converteData(selected.DATA_LANCTO))}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Nota">
+			<mx:TextInput id="cNota" name="descricao" width="159" text="{selected.NOTA}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Fornecedor">
+			<components:AutoComplete id="acFornecedores" width="280" height="22"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Fornecedores"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+		<mx:FormItem label="Localizador">
+			<components:AutoComplete id="acLocalizadores" width="280" height="22"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Localizadores"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+		<mx:FormItem label="Grupo">
+			<components:AutoComplete id="acGrupos" width="280" height="22"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Grupos"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+
+		</mx:FormItem>					
+		<mx:FormItem label="Data NF">
+			<components2:dateField id="dataNF" selectedDate="{new Date(converteData(selected.DATA_NOTA))}" focusOut="if(dataNF.text.length>0) bAdicionar.enabled=true; else bAdicionar.enabled=false"/>
+		</mx:FormItem>
+		<mx:FormItem label="Total">
+			<mx:TextInput id="vlTotal"/>
+		</mx:FormItem>
+		<mx:HRule width="384" height="8"/>
+		<mx:FormItem label="Histórico">
+			<mx:TextInput id="cHistorico" name="descricao" width="276" text="{selected.HISTORICO}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Observação">
+			<mx:TextInput id="cObservacao" name="descricao" width="276" text="{selected.OBSERVACAO}"/>
+		</mx:FormItem>
+		<mx:HBox width="394">
+			<mx:DataGrid id="dgParcelas" width="100%" height="134" dataProvider="{dpParcelas}" doubleClick="edita(dgParcelas)"
+						 variableRowHeight="true" click="bEditar.enabled=true;bRemover.enabled=true;bAdicionar.enabled=true">
+				<mx:columns>
+					<mx:DataGridColumn width="35" dataField="PARCELA" headerText="PAR"/>
+					<mx:DataGridColumn width="85" dataField="VALOR" headerText="VALOR"/>
+					<mx:DataGridColumn width="85" dataField="DATA_VENCTO" headerText="VENCTO"/>
+					<mx:DataGridColumn dataField="FORNECEDOR_DESC" headerText="FORNECEDOR"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:HBox>
+		<mx:HBox width="100%" horizontalAlign="center" textAlign="center">
+			<mx:Button width="85" id="bAdicionar" label="Adicionar" enabled="false" click="novo()"/>
+			<mx:Button width="85" id="bEditar" label="Editar" enabled="false" click="edita(dgParcelas)"/>
+			<mx:Button width="85" id="bRemover" label="Remover" enabled="false" click="dpParcelas.removeItemAt(dgParcelas.selectedIndex);if(dpParcelas.length==0)bEditar.enabled=false;bRemover.enabled=false"/>
+		</mx:HBox>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

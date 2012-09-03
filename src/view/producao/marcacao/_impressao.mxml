@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				width="226" height="284" close="PopUpManager.removePopUp(this);"
+				layout="vertical" showCloseButton="true" addedToStage="Service.listar('')">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.CheckBox;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+			import flash.events.Event;
+			
+			import view.*;
+			
+			private var rs:ArrayCollection;
+						
+			public var lote:String;
+			
+			[Bindable]
+			private var selecionado:Boolean = false;
+			
+			
+			private function processar(event:ResultEvent):void{
+				rs = new ArrayCollection(ArrayUtil.toArray(event.result));
+				var cbx1:CheckBox = new CheckBox();
+				cbx1.id = 'T';
+				cbx1.label = 'TODOS';
+				cbx1.width = 120;
+				cbx1.selected = selecionado;
+				cbx1.addEventListener(Event.CHANGE,click);
+				form.addChild(cbx1);
+				
+				for(var i:int=0;i<rs.length;i++){
+					//Create checkbox
+					var cbx:CheckBox = new CheckBox();
+					cbx.id = rs[i].ID;
+					cbx.label = rs[i].DESCRICAO;
+					cbx.width = 120;
+					cbx.selected = selecionado;
+					form.addChild(cbx);
+				}
+			}
+			
+			private function click(event:Event):void{
+				var tipos:Array = form.getChildren();
+				selecionado=!selecionado;
+				for(var a:int=0;a<tipos.length;a++){
+					tipos[a].selected=selecionado;
+				}
+			}
+			
+			private function imprimir():void{
+				var tipos:Array = form.getChildren();
+				var str:String = "";
+				for(var a:int=0;a<tipos.length;a++){
+					if(tipos[a].selected) str += ","+tipos[a].id;
+				}
+				navigateToURL(new URLRequest('/amfphp/services/relatorioInsumos.php?lote='+lote+"&tipos="+str), '_blank');
+				//PopUpManager.removePopUp(this);
+			}
+			
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+				if(evt == null) dispatchEvent(e);				
+				PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="InsumoTipoService">
+		<mx:method name="listar" result="processar(event)"/>
+	</mx:RemoteObject>
+	<mx:Form id="form" width="190" height="196">
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="CONFIRMAR" fontWeight="bold" click="imprimir()"/>
+		<mx:Button label="CANCELAR" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

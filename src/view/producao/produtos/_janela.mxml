@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="738" height="434" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.*;
+			import mx.utils.ArrayUtil;
+			import com.hillelcoren.utils.StringUtils;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			public var codigos:Object;
+			
+			public var verif:Boolean;
+			
+			private function init():void{
+				if(this.title=="EDITAR"){ 
+					acProdutoEscola.setFocus();
+					ComboService.produtoEscola();
+					ComboService.produtoArtigos();
+					verif=false;
+				}
+				
+				if(this.title=="NOVO"){ 
+					acProdutoEscola.setFocus();
+					ComboService.produtoEscola();
+					ComboService.produtoArtigos();
+					verif=true;
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				dispatchEvent(e);				
+				PopUpManager.removePopUp(this);
+			}
+						
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			private function resultHandlerComboProdutoEscola(event:ResultEvent):void{
+				acProdutoEscola.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(this.title=="EDITAR"){
+					for(var i:int=0;i<acProdutoEscola.dataProvider.length;i++){
+						if(selected.ESCOLA==event.result[i].ID)
+							acProdutoEscola.selectedItems.addItem(event.result[i]);
+					}
+				}
+			}
+
+			private function resultHandlerComboProdutoArtigos(event:ResultEvent):void{
+				acProdutoArtigos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+			}
+			
+			public function dropDownLabelFunction_ProdutoEscola( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acProdutoEscola.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acProdutoEscola.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_ProdutoArtigos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acProdutoArtigos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acProdutoArtigos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="ComboService" destination="amfphp" source="ComboService" showBusyCursor="true">
+		<mx:method id="produtoEscola" name="produtoEscola" result="resultHandlerComboProdutoEscola(event)"/>
+		<mx:method id="produtoArtigos" name="produtoArtigos" result="resultHandlerComboProdutoArtigos(event)"/>
+	</mx:RemoteObject>
+	<mx:Form x="10" y="10" width="698" height="333">
+		<mx:FormItem label="Escola">
+			<components:AutoComplete id="acProdutoEscola" width="280" height="22"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_ProdutoEscola"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+		<mx:FormItem height="270" label="Artigos">
+			<components:AutoComplete id="acProdutoArtigos" width="594" height="270"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="true" allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_ProdutoArtigos"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

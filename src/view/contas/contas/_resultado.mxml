@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				width="636" height="556" close="PopUpManager.removePopUp(this);"
+				layout="vertical" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+					
+			[Bindable]
+			public var de_mes:String;
+			public var para_mes:String;
+			
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+				if(evt == null) dispatchEvent(e);				
+				PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['NOTA'] = janela.selected.NOTA;
+				obj['DATA_LANCTO'] = janela.dataLancto.text;
+				obj['NOTA2'] = janela.cNota.text;
+				obj['FORNECEDOR'] = janela.acFornecedores.selectedItem.ID;
+				obj['LOCALIZADOR'] = janela.acLocalizadores.selectedItem.ID;
+				obj['GRUPO'] = janela.acGrupos.selectedItem.ID;
+				obj['DATA_NOTA'] = janela.dataNF.text;
+				obj['HISTORICO'] = janela.cHistorico.text;
+				obj['OBSERCACAO'] = janela.cObservacao.text;
+				obj['PARCELAS'] = new Array();
+				for(var i:String in janela.dpParcelas){
+					obj['PARCELAS'].push(janela.dpParcelas[i]);
+				}				
+				Service.editar(obj);
+			}
+			
+			private function atualizar():void{
+				var obj:Array = new Array();
+				obj['DE_MES'] = de_mes;
+				obj['PARA_MES'] = para_mes;
+				Service.processar(obj);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="ContaService">
+		<mx:method name="editar" result="atualizar()"/>
+		<mx:method name="processar" result="dg.dataProvider = event.result"/>
+	</mx:RemoteObject>
+
+	<mx:DataGrid width="100%" height="100%" id="dg" itemClick="editar()">
+		<mx:columns>
+			<mx:DataGridColumn dataField="DATA_VENCTO" width="90" headerText="VENCTO"/>
+			<mx:DataGridColumn dataField="VALOR" width="90" headerText="VALOR"/>
+			<mx:DataGridColumn dataField="FORNECEDOR_DESC2" headerText="FORNECEDOR"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="CONFIRMAR" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="CANCELAR" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

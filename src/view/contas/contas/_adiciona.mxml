@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				width="296" height="199" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			[Bindable]
+			public var s:Object;	
+			
+			public var maior:String;
+			
+			public var verif:Boolean = false;
+			
+			private function init():void{
+				if(this.title=="ADICIONAR"){ 
+					valor.setFocus();
+					if(s.DATA_VENCTO!='') {
+						cData.selectedDate = new Date(converteData(s.DATA_VENCTO));
+					}
+				}
+				
+				if(this.title=="EDITAR PARCELA"){ valor.setFocus(); }
+			}
+			
+			private function converteData(d:String):String{
+				return d.substr(3,2)+"/"+d.substr(0,2)+"/"+d.substr(6,4);
+			}
+			
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				if(verif){
+					if(cData.text==''){
+						Alert.show("A data de vencimento não deve ser nula.");
+					} else if(vencido(cData.text)){
+						Alert.show("Alerta! A data de vencimento inserida foi inferior a data atual!");
+						if(evt == null) {	
+							dispatchEvent(e);
+						}				
+						PopUpManager.removePopUp(this);	
+					} else {
+						if(evt == null) {	
+							dispatchEvent(e);
+						}				
+						PopUpManager.removePopUp(this);	
+					}
+				} else {
+					if(evt == null) {	
+						dispatchEvent(e);
+					}				
+					PopUpManager.removePopUp(this);	
+				}
+			}
+			
+			private function vencido(dataVenc:String):Boolean {
+				var Data1:Date = new Date();
+				var Data2:Date;
+				
+				var dateParsed:String ;
+				dateParsed = Data1.getFullYear()+'/'+(Data1.getMonth()+1)+'/'+Data1.date ;
+				Data1 = new Date( dateParsed ) ;
+				
+				dateParsed = dataVenc ;
+				dateParsed = dateParsed.substr(6,4)+'/'+dateParsed.substr(3,2)+'/'+dateParsed.substr(0,2)
+				Data2 = new Date( dateParsed ) ;
+				
+				if ( Data2 < Data1 ) {
+					return true ;
+				}                    
+				return false ;
+			}
+					
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+		]]>
+	</mx:Script>
+
+	<mx:Form x="10" y="10" width="255" height="111">
+		<mx:FormItem label="Parcela">
+			<mx:NumericStepper id="nsParcela" x="83" y="3" maximum="999"
+							   value="{s.PARCELA}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Valor">
+			<mx:TextInput id="valor" x="84" y="9" text="{s.VALOR}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Vencto">
+			<components2:dateField id="cData"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

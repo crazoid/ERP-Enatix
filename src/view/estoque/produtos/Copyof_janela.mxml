@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="832" height="574" close="PopUpManager.removePopUp(this);" creationComplete="init();"
+				layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import com.hillelcoren.utils.StringUtils;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.*;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+			
+			import view.estoque.indices._janela;
+			
+			[Bindable]
+			public var s:Object;	
+			
+			[Bindable]
+			private	var preco_fixo:Number;
+			
+			[Bindable]
+			private var coef:Number;
+			
+			[Bindable]
+			private var preco_custo:Number;
+			
+			[Bindable]
+			private var preco_venda:Number;
+			
+			[Bindable]
+			private var preco_prazo:Number;
+			
+			[Bindable]
+			private var preco_vista:Number;
+			
+			[Bindable]
+			private var margem_custo:Number;
+			
+			[Bindable]
+			private var margem_venda:Number;
+			
+			[Bindable]
+			private var desc_vista:Number;
+			
+			[Bindable]
+			private var desc_prazo:Number;
+			
+			private function init():void{
+				ComboService.departamento();
+				ComboService.fornecedor();
+				recalculaPrecoInicial();
+				//if(this.title=="EDITAR"){ codigo.setFocus(); }
+				
+				//if(this.title=="NOVO"){ codigo.setFocus(); }
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+				if(evt == null) dispatchEvent(e);				
+				PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+					
+			public function indices():void{
+				var popUp:view.estoque.indices._janela;
+				popUp = PopUpManager.createPopUp(this,view.estoque.indices._janela,true) as view.estoque.indices._janela;
+				popUp.title="VISUALIZA ÍNDICES";
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			private function indice(pz:String):Number{ //extrai o indice de compra dependedo do prazo (45) (31-45) = 0.969
+				var indice:Number;
+				var p:int = parseInt(pz);
+				if((p>0) && (p<=15)) indice = s.V0_15;
+				if((p>15) && (p<=30)) indice = s.V16_30;
+				if((p>30) && (p<=45)) indice = s.V31_45;
+				if((p>45) && (p<=60)) indice = s.V46_60;
+				if((p>60) && (p<=75)) indice = s.V61_75;
+				if((p>75) && (p<=90)) indice = s.V76_90;
+				if((p>90) && (p<=105)) indice = s.V91_105;
+				if((p>105) && (p<=120)) indice = s.V106_120;
+				if((p>120) && (p<=135)) indice = s.V121_135;
+				if((p>135) && (p<=150)) indice = s.V136_150;
+				if((p>150) && (p<=165)) indice = s.V151_165;
+				if((p>165) && (p<=180)) indice = s.V166_180;
+				return indice;
+			}
+			
+			protected function recalculaPrecoInicial():void{
+				margem_custo = (parseFloat(s.CMARGEM)/100);
+				margem_venda = (parseFloat(VMARGEM.text)/100);
+				preco_custo = parseFloat(CVALOR.text);
+				desc_vista = (100-parseFloat(DVISTA.text))/100;
+				desc_prazo = (100-parseFloat(DPRAZO.text))/100;
+				
+				//com as margens e o indice, se obtem o coeficiente (indice/indice-((mcusto/100)+(mvenda/100)))	
+				coef = (indice(PRAZO.text)/(1-(margem_custo+margem_venda)));
+				//(0.969/1-((35.00/100)+(2.50/100)))) = 1.550
+						
+				preco_fixo = (coef*preco_custo)/desc_vista;
+				VVALOR.text = arredonda(preco_fixo.toString().substr(0,5));
+				
+				preco_venda = parseFloat(VVALOR.text);
+				preco_prazo = preco_fixo*desc_prazo;			
+				preco_vista = preco_venda*desc_vista;				
+				
+				PPRAZO.text = arredonda(preco_prazo.toString().substr(0,5));
+				PVISTA.text = arredonda(preco_vista.toString().substr(0,5));
+				
+			}
+						
+			protected function recalculaPrecoFinal():void{		
+				margem_custo = (parseFloat(s.CMARGEM)/100);
+				margem_venda = (parseFloat(VMARGEM.text)/100);
+				preco_custo = parseFloat(CVALOR.text);
+				preco_venda = parseFloat(VVALOR.text);
+				desc_vista = (100-parseFloat(DVISTA.text))/100;
+				
+				//com as margens e o indice, se obtem o coeficiente (indice/indice-((mcusto/100)+(mvenda/100)))	
+				coef = (indice(PRAZO.text)/(1-(margem_custo+margem_venda)));
+				//(0.969/1-((35.00/100)+(2.50/100)))) = 1.550
+				
+				//(0.969/1-((35/100)+(x/100)))) = 1.550
+
+				
+				preco_fixo = (coef*preco_custo)/desc_vista;			
+				VVALOR.text = preco_fixo.toString().substr(0,5);
+								
+				if(parseFloat(PPRAZO.text) > preco_fixo)
+					desc_prazo = 100-((preco_fixo/parseFloat(PPRAZO.text))*100);
+				else
+					desc_prazo = 100-((parseFloat(PPRAZO.text)/preco_fixo)*100);
+				
+				if(parseFloat(PVISTA.text) > preco_venda)
+					desc_vista = 100-((preco_venda/parseFloat(PVISTA.text))*100);
+				else 
+					desc_vista = 100-((parseFloat(PVISTA.text)/preco_venda)*100);
+				
+				DPRAZO.text = desc_prazo.toString().substr(0,5);
+				DVISTA.text = desc_vista.toString().substr(0,5);
+												
+				//var percentual:Number = parseFloat(VMARGEM.text) / 100.0;
+				//var valor:Number = parseFloat(VVALOR.text) + (percentual * parseFloat(VVALOR.text));	
+				//Math.floor(valor);
+				//VVALOR.text = valor.toString().substr(0,5);
+				
+			}
+			
+			protected function recalculaMargem():void{	
+				if(preco_venda!=parseFloat(VVALOR.text)){
+					preco_venda = parseFloat(VVALOR.text);
+					
+					margem_venda = parseFloat(VMARGEM.text);
+					
+					for(var i:Number=0;i<=100;i++){
+						coef = (indice(PRAZO.text)/(1-(margem_custo+margem_venda)));
+					}
+					
+					if(preco_venda > preco_fixo)
+						VMARGEM.text = (margem_venda-(100-((preco_fixo/preco_venda)*100))+0.03).toString().substr(0,5);
+					else
+						VMARGEM.text = (margem_venda-(100-((preco_venda/preco_fixo)*100))+0.03).toString().substr(0,5);
+				}
+				
+				//recalculaPrecoInicial();
+				
+				//var percentual:Number = parseFloat(VMARGEM.text) / 100.0;
+				//var valor:Number = parseFloat(VVALOR.text) + (percentual * parseFloat(VVALOR.text));	
+				//Math.floor(valor);
+				//VVALOR.text = valor.toString().substr(0,5);
+				
+			}	
+			
+			private function arredonda(valor:String):String{
+				var n:Array = valor.split("."); // 84.96
+				if(n.length<2) { 
+					n[1] = '00'; 
+				}
+				var e0:Number = 0;
+				var e1:Number;
+				var e2:Number;
+				if(n[0].toString().length>2){
+					e0 = parseFloat(n[0].toString().substr(0,1)); // 8
+					e1 = parseFloat(n[0].toString().substr(1,1)); // 8
+					e2 = parseFloat(n[0].toString().substr(2,1)); // 8
+				} else {
+					e1 = parseFloat(n[0].toString().substr(0,1)); // 8
+					e2 = parseFloat(n[0].toString().substr(1,1)); // 8
+				}
+				if(n[1].toString().length<2){
+					n[1] = n[1]+"0";
+				}
+				var d1:Number = parseFloat(n[1].toString().substr(0,1)); // 9
+				var d2:Number = parseFloat(n[1].toString().substr(1,1)); // 6 
+				
+
+				if(d2>5){ 
+					d1+=1; d2=0;
+					if(d1==10){
+						d1=0; e2+=1; 
+						if(e2==10){
+							e2=0; e1+=1;
+							if(e1==10){
+								e1=0; e0+=1;
+							}
+						}
+					}
+				}
+				else if(d2<=5) {
+					d2=5;
+				}
+				if(e0!=0)
+					n[0] = e0+""+e1+""+e2;
+				else 
+					n[0] = e1+""+e2;
+				n[1] = d1+""+d2;
+				return n[0]+"."+n[1];
+			}
+
+			
+			private function resultHandlerComboDepartamento(event:ResultEvent):void{
+				if(this.title=="NOVO"){
+					acDepartamentos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				}
+				if(this.title=="EDITAR"){
+					acDepartamentos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+					for(var j:int=0;j<acDepartamentos.dataProvider.length;j++){
+						if(s.DEPTO==(event.result[j]).ID){
+							acDepartamentos.selectedItem = event.result[j];
+						}
+					}
+				}
+				ComboService.subdepartamento(s.DEPTO);
+			}
+			
+			private function resultHandlerComboSubdepartamento(event:ResultEvent):void{
+				if(this.title=="NOVO"){
+					acSubdepartamentos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				}
+				if(this.title=="EDITAR"){
+					acSubdepartamentos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+					for(var j:int=0;j<acSubdepartamentos.dataProvider.length;j++){
+						if(s.SUBDEPTO==(event.result[j]).ID){
+							acSubdepartamentos.selectedItem = event.result[j];
+						}
+					}
+				}
+			}
+			
+			private function resultHandlerComboFornecedor(event:ResultEvent):void{
+				if(this.title=="NOVO"){
+					acFornecedores.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				}
+				if(this.title=="EDITAR"){
+					acFornecedores.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+					for(var j:int=0;j<acFornecedores.dataProvider.length;j++){
+						if(s.FORNECEDOR==(event.result[j]).ID){
+							acFornecedores.selectedItem = event.result[j];
+						}
+					}
+				}
+			}
+			
+			public function dropDownLabelFunction_Departamentos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acDepartamentos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acDepartamentos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_Subdepartamentos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acSubdepartamentos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acSubdepartamentos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_Fornecedores( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acFornecedores.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acFornecedores.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			protected function _keyDownHandlerPrecoInicial(event:KeyboardEvent):void
+			{ if(event.keyCode==13)recalculaPrecoInicial();	}
+			
+			protected function _keyDownHandlerMargem(event:KeyboardEvent):void
+			{ if(event.keyCode==13)recalculaMargem();	}
+
+			protected function _keyDownHandlerDescontos(event:KeyboardEvent):void
+			{ if(event.keyCode==13)recalculaPrecoInicial();	}
+			
+			protected function _keyDownHandlerPrecoFinal(event:KeyboardEvent):void
+			{ if(event.keyCode==13)recalculaPrecoFinal();	}
+
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="ComboService" destination="amfphp" source="ComboService" showBusyCursor="true">
+		<mx:method id="departamento" name="departamento" result="resultHandlerComboDepartamento(event)"/>
+		<mx:method id="subdepartamento" name="subdepartamento" result="resultHandlerComboSubdepartamento(event)"/>
+		<mx:method id="fornecedor" name="fornecedor" result="resultHandlerComboFornecedor(event)"/>
+	</mx:RemoteObject>
+	<mx:Text x="10" y="14" fontSize="14" fontWeight="bold" text="PRODUTO"/>
+	<mx:Form x="10" y="36" width="392" height="280" borderStyle="solid" cornerRadius="5">
+		<mx:HBox width="357" horizontalAlign="right">
+			<mx:FormItem label="REDUZIDO" fontWeight="bold">
+				<mx:TextInput id="REDUZIDO" width="89" fontWeight="normal" text="{s.REDUZIDO}"/>
+			</mx:FormItem>
+			<mx:Spacer x="198" width="34" height="22"/>
+			<mx:FormItem label="REF" fontWeight="bold">
+				<mx:TextInput id="REF" width="78" fontWeight="normal" text="{s.REF}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:FormItem width="357" label="CODBARFAB" fontWeight="bold">
+			<mx:TextInput id="CODBARFAB" width="258" fontWeight="normal" text="{s.CODBARFAB}"/>
+		</mx:FormItem>
+		<mx:FormItem label="CODBARLOJA" fontWeight="bold">
+			<mx:TextInput id="CODBARLOJA" width="258" fontWeight="normal" text="{s.CODBARLOJA}"/>
+		</mx:FormItem>
+		<mx:FormItem label="NCM" fontWeight="bold">
+			<mx:TextInput id="NCM" width="69" fontWeight="normal" text="{s.NCM}"/>
+		</mx:FormItem>
+		<mx:FormItem width="357" label="DESCRIÇÃO" fontWeight="bold" horizontalAlign="right">
+			<mx:TextInput id="DESCRICAO" x="102" width="258" fontWeight="normal" text="{s.DESCRICAO}"/>
+		</mx:FormItem>
+		<mx:FormItem width="358" label="DEPTO" fontWeight="bold">
+			<components:AutoComplete id="acDepartamentos" width="100%" height="22"
+									 allowEditingNewValues="true" allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Departamentos"
+									 fontWeight="normal" labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+
+		</mx:FormItem>
+		<mx:FormItem width="358" label="SUBDEPTO" fontWeight="bold">
+			<components:AutoComplete id="acSubdepartamentos" width="100%" height="22"
+									 allowEditingNewValues="true" allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Subdepartamentos"
+									 fontWeight="normal" labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+		<mx:FormItem width="358" label="FORNECEDOR" fontWeight="bold" horizontalAlign="right">
+			<components:AutoComplete id="acFornecedores" width="100%" height="22"
+									 allowEditingNewValues="true" allowMultipleSelection="false"
+									 allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_Fornecedores"
+									 fontWeight="normal" labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+		<mx:HBox width="358" horizontalAlign="right">
+			<mx:FormItem label="UNIDADE" fontWeight="bold">
+				<mx:TextInput id="UNIDADE" width="79" fontWeight="normal" text="{s.UNIDADE}"/>
+			</mx:FormItem>
+			<mx:Spacer x="187" width="24" height="22"/>
+			<mx:FormItem label="GRADE" fontWeight="bold">
+					<mx:TextInput id="GRADE" width="79" fontWeight="normal" text="{s.GRADE}"/>
+			</mx:FormItem>
+		</mx:HBox>
+	</mx:Form>
+
+	<mx:Text x="410" y="14" fontSize="14" fontWeight="bold" text="PREÇO INICIAL"/>
+	<mx:Form x="410" y="36" width="382" height="85" borderStyle="solid" cornerRadius="5">
+		<mx:HBox width="345" horizontalAlign="right">
+		<mx:FormItem x="9" width="97" label="PRAZO" fontWeight="bold">
+				<mx:TextInput id="PRAZO" keyDown="_keyDownHandlerPrecoInicial(event)" width="37" fontWeight="normal" text="{s.PRAZO}"/>
+		</mx:FormItem>
+			<mx:FormItem height="22" label="dias"/>
+			<mx:HBox width="180" horizontalAlign="right">
+				<mx:FormItem width="164" label="PCUSTO R$" fontWeight="bold" horizontalAlign="right">
+					<mx:TextInput id="CVALOR" keyDown="_keyDownHandlerPrecoInicial(event)"  x="86" width="82" fontWeight="normal" text="{s.CVALOR}"/>
+				</mx:FormItem>
+			</mx:HBox>
+		</mx:HBox>
+		<mx:HBox width="345" horizontalAlign="right">
+			<mx:FormItem label="MVENDA" fontWeight="bold">
+				<mx:TextInput id="VMARGEM" width="45" keyDown="_keyDownHandlerPrecoInicial(event)" fontWeight="normal" text="{s.VMARGEM}"/>
+			</mx:FormItem>
+			<mx:FormItem height="22" label="%"/>
+			<mx:HBox width="180" horizontalAlign="right">
+				<mx:FormItem x="12" width="168" label="PVENDA R$" fontWeight="bold"
+							 horizontalAlign="right">
+					<mx:TextInput id="VVALOR" x="69" width="100%" editable="false"
+								  fontWeight="normal" keyDown="_keyDownHandlerMargem(event)"
+								  text="{s.VVALOR}"/>
+				</mx:FormItem>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:Form>
+	<mx:Text x="410" y="130" fontSize="14" fontWeight="bold" text="DESCONTOS"/>
+	<mx:Form x="410" y="152" width="382" height="60" borderStyle="solid" cornerRadius="5">
+		<mx:HBox width="348" height="22" horizontalAlign="right">
+			<mx:HBox x="0" width="152" horizontalAlign="right">
+				<mx:FormItem label="À VISTA" fontWeight="bold">
+					<mx:TextInput id="DVISTA" keyDown="_keyDownHandlerDescontos(event)" width="45" fontWeight="normal" text="{s.DVISTA}"/>
+				</mx:FormItem>
+				<mx:FormItem width="25" height="22" label="%"/>
+			</mx:HBox>
+			<mx:HBox x="160" width="188" horizontalAlign="right">
+				<mx:FormItem x="37" width="118" label="À PRAZO" fontWeight="bold">
+					<mx:TextInput id="DPRAZO" keyDown="_keyDownHandlerDescontos(event)" width="45" fontWeight="normal"
+								  text="{s.DPRAZO}"/>
+				</mx:FormItem>
+				<mx:FormItem width="25" height="22" label="%"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:Form>
+	<mx:Text x="410" y="218" fontSize="14" fontWeight="bold" text="PREÇO FINAL"/>
+	<mx:Form x="410" y="240" width="383" height="76" borderStyle="solid" cornerRadius="5">
+		<mx:HBox width="345" height="42" horizontalAlign="right">
+			<mx:FormItem height="42" label="À VISTA:" fontWeight="bold">
+					<mx:TextInput id="PVISTA" width="85" height="42" editable="false" fontSize="20"
+								  fontWeight="bold" keyDown="_keyDownHandlerPrecoFinal(event)"
+								  textAlign="center"/>
+			</mx:FormItem>
+			<mx:FormItem x="184" width="161" height="42" label="À PRAZO:" fontWeight="bold"
+						 textAlign="left">
+				<mx:TextInput id="PPRAZO" width="85" height="42" editable="false" fontSize="20"
+							  fontWeight="bold" keyDown="_keyDownHandlerPrecoFinal(event)"
+							  textAlign="center"/>
+			</mx:FormItem>
+		</mx:HBox>
+	</mx:Form>
+	<mx:Button x="613" y="319" label="ÍNDICES" click="indices();"/>
+	<mx:Button x="696" y="319" label="RECALCULA" click="recalculaPrecoFinal()"/>
+	<mx:Text x="346" y="324" fontSize="14" fontWeight="bold" text="QUANTIDADES"/>
+	<mx:Grid x="10" y="346" width="783" height="54">
+		<mx:GridRow width="100%" height="21">
+			<mx:GridItem width="100%" height="100%" textAlign="center">
+				<mx:Label id="Q1" width="100%" fontWeight="bold" text="{s.Q1}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q2" width="100%" fontWeight="bold" text="{s.Q2}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q3" width="100%" fontWeight="bold" text="{s.Q3}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q4" width="100%" fontWeight="bold" text="{s.Q4}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q5" width="100%" fontWeight="bold" text="{s.Q5}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q6" width="100%" fontWeight="bold" text="{s.Q6}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q7" width="100%" fontWeight="bold" text="{s.Q7}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q8" width="100%" fontWeight="bold" text="{s.Q8}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q9" width="100%" fontWeight="bold" text="{s.Q9}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q10" width="100%" fontWeight="bold" text="{s.Q10}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q11" width="100%" fontWeight="bold" text="{s.Q11}" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q12" width="100%" fontWeight="bold" text="{s.Q12}" textAlign="center"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="22">
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV1" width="57" text="{s.QV1}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV2" width="57" text="{s.QV2}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV3" width="57" text="{s.QV3}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV4" width="57" text="{s.QV4}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV5" width="57" text="{s.QV5}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV6" width="57" text="{s.QV6}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV7" width="57"
+								   text="{s.QV7}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV8" width="57"
+								   text="{s.QV8}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV9" width="57" text="{s.QV9}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV10" width="57" text="{s.QV10}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV11" width="57" text="{s.QV11}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV12" width="57" text="{s.QV12}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	<mx:Text id="TOTAL" x="11" y="415" width="185" fontSize="14" fontWeight="bold"
+			 text="TOTAL: {s.TOTAL}"/>
+	<mx:Text id="ACMES" x="331" y="415" width="145" fontSize="14" fontWeight="bold"
+			 text="AC MÊS: {s.ACMES}" textAlign="center"/>
+	<mx:Text id="ULTVEN" x="528" y="415" width="265" fontSize="14" fontWeight="bold"
+			 text="ÚLT. VENDA: {s.ULTVEND}" textAlign="right"/>
+	<mx:Grid x="10" y="437" width="783" height="54" borderStyle="solid" cornerRadius="5"
+			 paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center">
+		<mx:GridRow width="100%" height="21">
+			<mx:GridItem width="100%" height="100%" textAlign="center">
+				<mx:Label width="100%" fontWeight="bold" text="01"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="02" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="03" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="04" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="05" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="06" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="07" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="08" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="09" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="10" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="11" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label width="100%" fontWeight="bold" text="12" textAlign="center"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="22">
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC1" width="57" text="{s.AC1}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC2" width="57" text="{s.AC2}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC3" width="57" text="{s.AC3}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC4" width="57" text="{s.AC4}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC5" width="57" text="{s.AC5}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC6" width="57" text="{s.AC6}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC7" width="57"
+							  text="{s.AC7}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC8" width="57"
+							  text="{s.AC8}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC9" width="57" text="{s.AC9}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC10" width="57" text="{s.AC10}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC11" width="57" text="{s.AC11}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="AC12" width="57" text="{s.AC12}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

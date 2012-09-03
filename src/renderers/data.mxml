@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:MXDataGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" 
+						  focusEnabled="true">
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.utils.ObjectUtil;
+		
+			private const POSITIVE_COLOR:uint = 0x000000; // Black
+			private const NEGATIVE_COLOR:uint = 0xFF0000; // Red
+
+			protected function init():void
+			{			
+				var retorno:String = dataGridListData.label==" "? "-----" : dataGridListData.label.substr(8,2)+'/'+dataGridListData.label.substr(5,2)+'/'+dataGridListData.label.substr(0,4);
+				var a:Date = new Date();
+				var v:Date = new Date(dataGridListData.label.substr(0,4),dataGridListData.label.substr(5,2),dataGridListData.label.substr(8,2));
+				var dataAtualDia:Number = a.getDate();
+				var dataAtualMes:Number = a.getMonth();
+				var dataAtualAno:Number = a.getFullYear();
+
+				var dataVenctoDia:Number = v.getDate();
+				var dataVenctoMes:Number = v.getMonth();
+				var dataVenctoAno:Number = v.getFullYear();
+				if(dataVenctoAno < dataAtualAno){ 
+					lblData.setStyle("color", NEGATIVE_COLOR);
+				} else if (dataVenctoAno == dataAtualAno){
+					if(dataVenctoMes > dataAtualMes)
+						lblData.setStyle("color", POSITIVE_COLOR);
+					if(dataVenctoMes == dataAtualMes){
+						if(dataVenctoDia > dataAtualDia)
+							lblData.setStyle("color", POSITIVE_COLOR);
+					}
+				}
+				
+				lblData.text = retorno;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:Text id="lblData" x="0" y="0" width="100%" left="5" right="5" htmlText="{dataGridListData.label}"/>
+
+</s:MXDataGridItemRenderer>

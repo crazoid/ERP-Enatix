@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="738" height="478" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.events.ResultEvent;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import com.hillelcoren.utils.StringUtils;
+			import mx.collections.*;
+			import mx.utils.ArrayUtil;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			public var codigos:Object;
+			
+			public var verif:Boolean;
+			
+			public var dg:DataGrid;
+			
+			private function init():void{			
+				if(this.title=="INSERIR PRODUTOS"){ 
+					if(codigo.text!=""){
+						codigo.enabled=false;
+						descricao.enabled=false;
+						ComboService.produto(dg.dataProvider);
+					}
+					else ComboService.produto('');
+					acLoteProdutos.setFocus();
+					verif=true;
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				var existe:Boolean = false;
+				for (var i:String in codigos){
+					if(codigos[i] == codigo.text) existe=true;
+				}
+				if(codigo.text==""){
+					Alert.show("Digite um código válido!.","Alerta!",Alert.OK,this,alertListenerCodigo);
+				} else {
+					if(verif){
+						if(existe){
+							Alert.show("Código já existente!","Alerta!",Alert.OK,this,alertListenerCodigo);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					} else {
+						if(codigo.text!=selected.ID){
+							verif=true;
+							fechar(null);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					}
+				}
+			}
+			
+			public function alertListenerCodigo(e:CloseEvent):void { codigo.setFocus(); }
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			public function dropDownLabelFunction_LotesProdutos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acLoteProdutos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acLoteProdutos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			private function resultHandlerComboProduto(event:ResultEvent):void{
+				acLoteProdutos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(this.title=="EDITAR"){
+					for(var i:int=0;i<acLoteProdutos.dataProvider.length;i++){
+						if(acLoteProdutos.dataProvider[i].MARCADO=="true")
+							acLoteProdutos.selectedItems.addItem(event.result[i]);
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="ComboService" destination="amfphp" source="ComboService" showBusyCursor="true">
+		<mx:method id="produto" name="produto" result="resultHandlerComboProduto(event)"/>
+	</mx:RemoteObject>
+	<mx:Form x="10" y="10" width="698" height="360">
+		<mx:FormItem label="Código">
+			<mx:TextInput id="codigo" width="56" text="{selected.ID}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Descrição">
+			<mx:TextInput id="descricao" width="221" text="{selected.DESCRICAO2}"/>
+		</mx:FormItem>
+		<mx:FormItem height="270" label="Produtos">
+			<components:AutoComplete id="acLoteProdutos" width="594" height="252"
+									 allowEditingNewValues="true"
+									 allowMultipleSelection="true" allowNewValues="true"
+									 dropDownLabelFunction="dropDownLabelFunction_LotesProdutos"
+									 labelField="DESCRICAO" matchType="word"
+									 selectedItemStyleName="facebook" textAlign="left"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

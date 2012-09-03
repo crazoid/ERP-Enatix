@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				width="594" height="584" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			public var codigos:Object;
+			
+			public var verif:Boolean;
+			
+			private function init():void{
+				if(this.title=="EDITAR"){ 
+					fCodigo.setFocus();
+					mensalF.selected = selected.MENSAL?true:false;
+					verif = false;
+				}
+				
+				if(this.title=="NOVO"){ 
+					verif=true; 
+					fCodigo.setFocus(); 
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				var existe:Boolean = false;
+				for (var i:String in codigos){
+					if(codigos[i] == fCodigo.text) existe=true;
+				}
+				if(fCodigo.text==""){
+					Alert.show("Digite um código para o fornecedor.","Alerta!",Alert.OK,this,alertListenerFornecedorCodigo);
+				} else {
+					if(verif){
+						if(existe){
+							Alert.show("Código já existente!","Alerta!",Alert.OK,this,alertListenerFornecedorCodigo);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					} else {
+						if(fCodigo.text!=selected.ID){
+							verif=true;
+							fechar(null);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					}
+				}
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			public function alertListenerFornecedorCodigo(e:CloseEvent):void { fCodigo.setFocus(); }
+			public function alertListenerFornecedorRazao(e:CloseEvent):void { fRazao.setFocus(); }
+			public function alertListenerFornecedorNome(e:CloseEvent):void { fNomeFantasia.setFocus(); }
+			
+			private function abrir(end:String):void{
+				if(end==""){
+					Alert.show("Digite um endereço para abrir.");	
+				} 
+				else if(end=="mailto:") {
+					Alert.show("Digite um endereço para abrir.");
+				}
+				else if(end=="http://") {
+					Alert.show("Digite um endereço para abrir.");
+				}
+				else {
+					var pos:int = end.lastIndexOf("http://");
+					if(pos==7)
+						end = end.substring(7);
+					var url:URLRequest = new URLRequest(end);
+					navigateToURL(url,'_blank');
+				}
+			}
+			
+			private function abrirMapa():void{
+				var url:String;
+				var endereco:String = fEndereco.text;
+				var cidade:String = fMunicipio.text;
+				var bairro:String = fBairro.text;
+				var cep:String = fCEP.text;
+				var uf:String = fUF.text;
+				var checagem:Boolean;
+				//url = 'https://maps.google.com/maps?q='+fEndereco.text+'+-+'+fBairro.text+',+'+fMunicipio.text+'+-+'+fUF.text+',+Brasil&hl=pt-BR&ie=UTF8&ll=-25.091623,-50.146236&spn=0.023669,0.038581&sll=-25.094546,-50.163287&sspn=0.747444,0.344696&oq='+fEndereco.text;
+				checagem = endereco=="" ? false : true;
+				checagem = cidade=="" ? false : true;
+				if(checagem)
+					navigateToURL(new URLRequest('mapa.php?endereco='+endereco+'&cidade='+cidade+'&bairro='+bairro+'&cep='+cep+'&uf='+uf), '_blank');
+				else 
+					Alert.show("Digite um endereço para abrir.");
+			}
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10" width="542" height="470">
+		<mx:HBox width="343" horizontalAlign="center">
+		<mx:FormItem label="Código">
+			<mx:TextInput id="fCodigo" name="id" width="56" text="{selected.ID}"/>
+		</mx:FormItem>
+		<mx:FormItem height="22" label="Contas Mensais">
+			<mx:CheckBox id="mensalF"/>
+		</mx:FormItem>
+		</mx:HBox>
+		<mx:FormItem label="Razão">
+			<mx:TextInput id="fRazao" name="descricao" width="307" text="{selected.RAZAO}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Nome Fantasia">
+			<mx:TextInput id="fNomeFantasia" name="descricao" width="307" text="{selected.NOME_FANTASIA}"/>
+		</mx:FormItem>
+			<mx:HRule width="509" height="10"/>
+			<mx:HBox width="507" horizontalAlign="center">
+				<mx:FormItem label="CNPJ">
+					<mx:TextInput id="fCNPJ" name="descricao" width="150" text="{selected.CNPJ}"/>
+				</mx:FormItem>
+				<mx:FormItem label="IE">
+					<mx:TextInput id="fIE" name="descricao" width="150" text="{selected.IE}"/>
+				</mx:FormItem>
+			</mx:HBox>
+		<mx:HRule width="509" height="10"/>
+		<mx:HBox width="495" horizontalAlign="center">
+			<mx:FormItem label="ENDEREÇO">
+				<mx:TextInput id="fEndereco" name="descricao" width="322" text="{selected.ENDERECO}"/>
+			</mx:FormItem>
+			<mx:Button x="431" width="25" icon="@Embed('assets/ico/p-enredeco.png')"
+					   click="abrirMapa()"/>
+		</mx:HBox>
+		<mx:FormItem label="BAIRRO">
+			<mx:TextInput id="fBairro" name="descricao" width="149" text="{selected.BAIRRO}"/>
+		</mx:FormItem>
+		<mx:HBox width="507" horizontalAlign="center">
+			<mx:FormItem label="MUNICIPIO">
+				<mx:TextInput id="fMunicipio" name="descricao" width="150" text="{selected.MUNICIPIO}"/>
+			</mx:FormItem>
+			<mx:FormItem label="UF">
+				<mx:TextInput id="fUF" name="descricao" width="50" text="{selected.UF}"/>
+			</mx:FormItem>
+			<mx:FormItem label="CEP">
+				<mx:TextInput id="fCEP" name="descricao" width="85" text="{selected.CEP}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:HBox width="414" horizontalAlign="center">
+			<mx:FormItem label="FONE">
+				<mx:TextInput id="fFone" name="descricao" width="100" text="{selected.FONE}"/>
+			</mx:FormItem>
+			<mx:FormItem label="FAX">
+				<mx:TextInput id="fFax" name="descricao" width="100" text="{selected.FAX}"/>
+			</mx:FormItem>
+		</mx:HBox>
+		<mx:HBox width="472" horizontalAlign="center">
+			<mx:FormItem label="E-MAIL">
+				<mx:TextInput id="fEmail" name="descricao" width="280" text="{selected.EMAIL}"/>
+			</mx:FormItem>
+			<mx:Button width="25" click="abrir('mailto:'+fEmail.text)" icon="@Embed('assets/ico/p-email.png')"/>
+		</mx:HBox>
+		<mx:HBox width="485" horizontalAlign="center">
+			<mx:FormItem label="SITE">
+				<mx:TextInput id="fSite" name="descricao" width="280" text="{selected.SITE}"/>
+			</mx:FormItem>
+			<mx:Button click="abrir('http://'+fSite.text)" width="25" icon="@Embed('assets/ico/p-site.png')"/>
+		</mx:HBox>
+		<mx:FormItem label="CONTATO">
+			<mx:TextInput id="fContato" name="descricao" width="221" text="{selected.CONTATO}"/>
+		</mx:FormItem>
+		<mx:FormItem label="REPRESENTANTE">
+			<mx:TextInput id="fRepresentante" name="descricao" width="308" text="{selected.REPRESENTANTE}"/>
+		</mx:FormItem>
+		<mx:HRule width="509" height="10"/>
+		<mx:FormItem label="FONE REPRES">
+			<mx:TextInput id="fFoneRepres" name="descricao" width="221" text="{selected.FONE_REPRES}"/>
+		</mx:FormItem>
+		<mx:FormItem label="DATA CAD">
+			<components2:dateField id="fDataCad" selectedDate="{new Date(selected.DATA_CAD.substr(5,2)+'/'+selected.DATA_CAD.substr(8,2)+'/'+selected.DATA_CAD.substr(0,4))}"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

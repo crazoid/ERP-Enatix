@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				width="382" height="188" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			public var codigos:Object;
+			
+			public var verif:Boolean;
+			
+			private function init():void{
+				if(this.title=="EDITAR"){ 
+					lCodigo.setFocus();
+					verif = false;
+				}
+				
+				if(this.title=="NOVO"){ 
+					verif = true;
+					lCodigo.setFocus(); 
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				var existe:Boolean = false;
+				for (var i:String in codigos){
+					if(codigos[i] == lCodigo.text) existe=true;
+				}
+				if(lCodigo.text==""){
+					Alert.show("Digite um código válido!.","Alerta!",Alert.OK,this,alertListenerCodigo);
+				} else {
+					if(verif){
+						if(existe){
+							Alert.show("Código já existente!","Alerta!",Alert.OK,this,alertListenerCodigo);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					} else {
+						if(lCodigo.text!=selected.ID){
+							verif=true;
+							fechar(null);
+						} else {
+							dispatchEvent(e);				
+							PopUpManager.removePopUp(this);
+						}
+					}
+				}
+			}
+			
+			public function alertListenerCodigo(e:CloseEvent):void { lCodigo.setFocus(); }
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+		]]>
+	</mx:Script>
+	<mx:Form x="10" y="10" width="336" height="90">
+		<mx:FormItem label="Código">
+			<mx:TextInput id="lCodigo" width="56" text="{selected.ID}"/>
+		</mx:FormItem>
+		<mx:FormItem label="Descrição">
+			<mx:TextInput id="lDescricao" width="221" text="{selected.DESCRICAO}"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" title="ARTIGOS"
+				  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="components.*" layout="absolute" width="522" height="346"
+				  addedToStage="atualizar()">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+						
+			private var ed:Boolean=false;
+			
+			public function atualizar():void{
+				Service.listar('');
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="NOVO";
+				var codigos:Array = new Array();
+				for (var i:String in dg.dataProvider){
+					codigos[i] = dg.dataProvider[i].ID;
+				}
+				popUp.codigos = codigos;
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.codigo.text;
+				obj['DESCRICAO'] = janela.descricao.text;
+				Service.cadastrar(obj);
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="EDITAR";
+				var codigos:Array = new Array();
+				for (var i:String in dg.dataProvider){
+					codigos[i] = dg.dataProvider[i].ID;
+				}
+				popUp.codigos = codigos;
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			protected function excluir():void
+			{
+				Alert.show("Todas os produtos referentes a esse artigo também serão excluidos! \nTem certeza que deseja excluir?","Alerta!",Alert.YES|Alert.NO,this,alertListenerExclusao);
+			}
+			
+			public function alertListenerExclusao(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 				
+					Service.excluir(dg.selectedItem.ID);
+					bEditar.visible=false;
+					bExcluir.visible=false;
+					this.ed=false;
+				}
+			}
+		
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.selected.ID;
+				obj['ID2'] = janela.codigo.text;
+				obj['DESCRICAO'] = janela.descricao.text;
+				Service.editar(obj);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="ArtigoService">
+			<mx:method name="listar" result="dg.dataProvider = event.result"/>
+			<mx:method name="cadastrar" result="Service.listar(procura.text)"/>
+			<mx:method name="editar" result="Service.listar(procura.text)"/>
+			<mx:method name="excluir" result="Service.listar(procura.text)"/>
+		</mx:RemoteObject>
+	</fx:Declarations>
+	<mx:DataGrid id="dg" x="0" y="0" width="100%" height="100%" fontWeight="normal" variableRowHeight="true" itemClick="dgClick(event)" doubleClick="editar()">
+		<mx:columns>
+			<mx:DataGridColumn width="55" dataField="ID" headerText="COD"/>
+			<mx:DataGridColumn dataField="DESCRICAO" headerText="ARTIGO"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" click="excluir()"/>
+		<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+				  paddingTop="5" themeColor="#000000">
+			<mx:Spacer width="100%"/>
+			<mx:Spacer width="100%"/>
+			<mx:TextInput id="procura" width="156" height="24" keyDown="if(event.keyCode==13) { Service.listar(procura.text) }"/>
+			<mx:Button label="PROCURAR" click="Service.listar(procura.text)"/>
+			
+		</s:HGroup>
+	</mx:ControlBar>
+</components:SuperPanel>

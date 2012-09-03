@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" title="GRADES"
+				  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="components.*" layout="absolute" width="737" height="346"
+				  addedToStage="atualizar()" creationComplete="dg.addEventListener(ScrollEvent.SCROLL, posicao);">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.events.ScrollEvent;
+			private var posi:Number=0;
+			protected function posicao(event:ScrollEvent):void { posi = event.position;	}
+			
+			private var ed:Boolean=false;
+			
+			public function atualizar():void{
+				Service.listar('');
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.codigo.text;
+				obj['G1'] = janela.G1.text;
+				obj['G2'] = janela.G2.text;
+				obj['G3'] = janela.G3.text;
+				obj['G4'] = janela.G4.text;
+				obj['G5'] = janela.G5.text;
+				obj['G6'] = janela.G6.text;
+				obj['G7'] = janela.G7.text;
+				obj['G8'] = janela.G8.text;
+				obj['G9'] = janela.G9.text;
+				obj['G10'] = janela.G10.text;
+				obj['G11'] = janela.G11.text;
+				obj['G12'] = janela.G12.text;
+				obj['G13'] = janela.G13.text;
+				obj['G14'] = janela.G14.text;
+				obj['G15'] = janela.G15.text;
+				var existe:Boolean = false;
+				for (var i:String in dg.dataProvider){
+					if(obj['ID'] == dg.dataProvider[i].ID) existe=true;
+				}
+				if(existe){ Alert.show("Item já existente. Deseja cadastrar outro?", "Alert", 3, this, alertListenerNovo, null, Alert.OK); }
+				else { 	Service.cadastrar(obj); }
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			protected function excluir():void
+			{
+				Service.excluir(dg.selectedItem.ID);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.selected.ID;
+				obj['ID2'] = janela.codigo.text;
+				obj['G1'] = janela.G1.text;
+				obj['G2'] = janela.G2.text;
+				obj['G3'] = janela.G3.text;
+				obj['G4'] = janela.G4.text;
+				obj['G5'] = janela.G5.text;
+				obj['G6'] = janela.G6.text;
+				obj['G7'] = janela.G7.text;
+				obj['G8'] = janela.G8.text;
+				obj['G9'] = janela.G9.text;
+				obj['G10'] = janela.G10.text;
+				obj['G11'] = janela.G11.text;
+				obj['G12'] = janela.G12.text;
+				obj['G13'] = janela.G13.text;
+				obj['G14'] = janela.G14.text;
+				obj['G15'] = janela.G15.text;				
+				Service.editar(obj);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="GradeService">
+			<mx:method name="listar" result="dg.dataProvider = event.result;dg.verticalScrollPosition = posi;"/>
+			<mx:method name="cadastrar" result="Service.listar(procura.text)"/>
+			<mx:method name="editar" result="Service.listar(procura.text)"/>
+			<mx:method name="excluir" result="Service.listar(procura.text)"/>
+		</mx:RemoteObject>
+	</fx:Declarations>
+	<mx:DataGrid id="dg" x="0" y="0" width="100%" height="100%" fontWeight="normal" variableRowHeight="true" itemClick="dgClick(event)" doubleClick="editar()">
+		<mx:columns>
+			<mx:DataGridColumn width="55" dataField="ID" headerText="COD"/>
+			<mx:DataGridColumn dataField="G1" headerText="1"/>
+			<mx:DataGridColumn dataField="G2" headerText="2"/>
+			<mx:DataGridColumn dataField="G3" headerText="3"/>
+			<mx:DataGridColumn dataField="G4" headerText="4"/>
+			<mx:DataGridColumn dataField="G5" headerText="5"/>
+			<mx:DataGridColumn dataField="G6" headerText="6"/>
+			<mx:DataGridColumn dataField="G7" headerText="7"/>
+			<mx:DataGridColumn dataField="G8" headerText="8"/>
+			<mx:DataGridColumn dataField="G9" headerText="9"/>
+			<mx:DataGridColumn dataField="G10" headerText="10"/>
+			<mx:DataGridColumn dataField="G11" headerText="11"/>
+			<mx:DataGridColumn dataField="G12" headerText="12"/>
+			<mx:DataGridColumn dataField="G13" headerText="13"/>
+			<mx:DataGridColumn dataField="G14" headerText="14"/>
+			<mx:DataGridColumn dataField="G15" headerText="15"/>
+			</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" click="excluir()"/>
+		<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+				  paddingTop="5" themeColor="#000000">
+			<mx:Spacer width="100%"/>
+			<mx:Spacer width="100%"/>
+			<mx:TextInput id="procura" width="156" height="24" keyDown="if(event.keyCode==13) { Service.listar(procura.text) }"/>
+			<mx:Button label="PROCURAR" click="Service.listar(procura.text)"/>			
+		</s:HGroup>
+	</mx:ControlBar>
+</components:SuperPanel>

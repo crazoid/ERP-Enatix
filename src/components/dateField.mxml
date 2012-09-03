@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DateField xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			  xmlns:s="library://ns.adobe.com/flex/spark" 
+			  xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="inicio()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.validators.DateValidator;
+			public function inicio():void {
+				dayNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+				formatString = 'DD/MM/YYYY';
+				restrict = "0-9, /";
+				monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 
+					'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+				editable = true;
+				firstDayOfWeek = 0; 
+				yearNavigationEnabled = true;  
+				width = 100;
+				addEventListener(FocusEvent.FOCUS_OUT, proSetMask, false, 0, true);
+				addEventListener(KeyboardEvent.KEY_DOWN, proKeyDown, false, 0, true);
+			}
+			
+			private function proKeyDown(E: KeyboardEvent): void {
+				// Espaço
+				if (E.keyCode == 32)
+					open();
+				if (E.keyCode == 13){
+					mascara();
+					focusManager.setFocus( focusManager.getNextFocusManagerComponent() );
+				}
+			}
+			
+			private function mascara(): void {
+				if ((text.charAt(2) != '/') || (text.charAt(5) != '/')) {
+					if (text.length == 6)
+						text = text.substr(0, 2) + '/' + text.substr(2,2) + '/' + text.substr(4, 4);
+					else if (text.length == 8)
+						text = text.substr(0, 2) + '/' + text.substr(2,2) + '/' + text.substr(4, 4);
+				}
+			}
+			
+			private function proSetMask(evFocus: FocusEvent): void {
+				if ((text.charAt(2) != '/') || (text.charAt(5) != '/')) {
+					if (text.length == 6)
+						text = text.substr(0, 2) + '/' + text.substr(2,2) + '/' + text.substr(4, 4);
+					else if (text.length == 8)
+						text = text.substr(0, 2) + '/' + text.substr(2,2) + '/' + text.substr(4, 4);
+				}
+				
+				// Verifica se a opção para validar a data está ativa
+			}
+			
+			private function proCheckDate(): void {
+				var      
+				_rDateValidator: DateValidator = new DateValidator();
+				_rDateValidator.source = this;
+				_rDateValidator.required = false;
+				_rDateValidator.property = 'text';
+				_rDateValidator.inputFormat = 'dd/mm/yyyy';
+				_rDateValidator.allowedFormatChars = '/-';
+				_rDateValidator.wrongDayError = 'Favor informar um dia válido para o mês.'
+				_rDateValidator.wrongLengthError = 'Favor informar a data no formato dd/mm/aaaa.'
+				_rDateValidator.wrongMonthError = 'Favor informar um mês entre 1 e 12.'
+				_rDateValidator.validate();
+			}
+		]]>
+	</fx:Script>
+	
+	
+</mx:DateField>

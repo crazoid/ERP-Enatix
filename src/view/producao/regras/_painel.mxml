@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:s="library://ns.adobe.com/flex/spark"
+				  xmlns:local="*"
+				  xmlns:components="components.*"
+				  xmlns:renderers="renderers.*"
+				  xmlns:mx="http://www.adobe.com/2006/mxml" 
+				  title="REGRAS"
+				  layout="absolute" width="1000" height="500"
+				  addedToStage="atualizar()" creationComplete="dg.addEventListener(ScrollEvent.SCROLL, posicao);">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.events.ScrollEvent;
+			import mx.managers.PopUpManager;
+						
+			private var ed:Boolean=false;
+			private var posi:Number=0;
+			
+			protected function posicao(event:ScrollEvent):void
+			{
+				posi = event.position;
+			}
+			
+			public function atualizar():void{
+				Service.listar('');
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ARTIGOS'] = janela.acRegraArtigos.selectedItems;
+				obj['INSUMOS'] = janela.acRegraInsumos.selectedItems;
+				obj['DOIS'] = janela.dois.text;
+				obj['QUATRO'] = janela.quatro.text;
+				obj['SEIS'] = janela.seis.text;
+				obj['OITO'] = janela.oito.text;
+				obj['DEZ'] = janela.dez.text;
+				obj['DOZE'] = janela.doze.text;
+				obj['QUATORZE'] = janela.quatorze.text;
+				obj['DEZESSEIS'] = janela.dezesseis.text;
+				obj['P'] = janela.p.text;
+				obj['M'] = janela.m.text;
+				obj['G'] = janela.g.text;
+				obj['XG'] = janela.xg.text;
+				Service.cadastrar(obj);
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janelaMarcacao;
+				popUp = PopUpManager.createPopUp(this,_janelaMarcacao,true) as _janelaMarcacao;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janelaMarcacao = (event.target as _janelaMarcacao);
+				obj['ARTIGO'] = dg.selectedItem.ARTIGO;
+				obj['INSUMO'] = dg.selectedItem.INSUMO;
+				obj['DOIS'] = janela.nsdois.text;
+				obj['QUATRO'] = janela.nsquatro.text;
+				obj['SEIS'] = janela.nsseis.text;
+				obj['OITO'] = janela.nsoito.text;
+				obj['DEZ'] = janela.nsdez.text;
+				obj['DOZE'] = janela.nsdoze.text;
+				obj['QUATORZE'] = janela.nsquatorze.text;
+				obj['DEZESSEIS'] = janela.nsdezesseis.text;
+				obj['P'] = janela.nsp.text;
+				obj['M'] = janela.nsm.text;
+				obj['G'] = janela.nsg.text;
+				obj['XG'] = janela.nsxg.text;
+				Service.editar(obj);
+			}
+			
+			protected function excluir():void
+			{
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				ed=false;			
+				var obj:Array = new Array();
+				obj['ARTIGO'] = dg.selectedItem.ARTIGO;
+				obj['INSUMO'] = dg.selectedItem.INSUMO;
+				Service.excluir(obj);
+			}
+			
+			protected function excluirMarcados():void
+			{
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;			
+				var tmp:Array=new Array();
+				for(var i:String in dg.dataProvider){
+					if(dg.dataProvider[i].checked){
+						tmp[i] = new Array();
+						tmp[i]['ARTIGO']=dg.dataProvider[i].ARTIGO;
+						tmp[i]['INSUMO']=dg.dataProvider[i].INSUMO;
+					}
+				}
+				for(var y:String in tmp){
+					var obj:Array = new Array();
+					obj['ARTIGO'] = tmp[y]['ARTIGO'];
+					obj['INSUMO'] = tmp[y]['INSUMO'];
+					trace(obj['ARTIGO']);
+					trace(obj['INSUMO']);
+					trace("\r\n");
+					Service.excluir(obj);
+				}
+			}
+			
+			private function numSort(obj1:Object, obj2:Object):int 
+			{
+				var num:Number = ((Number)(obj1.ID) - (Number)(obj2.ID));
+				return (num > 0) ? 1 : ((num < 0) ? -1 : 0);	
+			}
+			
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="RegraService">
+		<mx:method name="listar" result="dg.dataProvider = event.result;dg.verticalScrollPosition = posi;"/>
+		<mx:method name="cadastrar" result="Service.listar(procura.text)"/>
+		<mx:method name="editar" result="Service.listar(procura.text)"/>
+		<mx:method name="excluir" result="Service.listar(procura.text)"/>
+	</mx:RemoteObject>
+	<mx:DataGrid id="dg" itemClick="dgClick(event)" doubleClick="editar()" x="0" y="0" width="100%" height="100%" fontWeight="normal" variableRowHeight="true">
+		<mx:columns>
+			<mx:DataGridColumn dataField="ID" sortCompareFunction="numSort" headerText="COD" width="35"/>
+			<mx:DataGridColumn dataField="ARTIGO_DESC" headerText="ARTIGO"/>
+			<mx:DataGridColumn dataField="INSUMO_DESC" headerText="INSUMO"/>
+			<mx:DataGridColumn dataField="DOIS" headerText="02" width="42"/>
+			<mx:DataGridColumn dataField="QUATRO" headerText="04" width="42"/>
+			<mx:DataGridColumn dataField="SEIS" headerText="06" width="42"/>
+			<mx:DataGridColumn dataField="OITO" headerText="08" width="42"/>
+			<mx:DataGridColumn dataField="DEZ" headerText="10" width="42"/>
+			<mx:DataGridColumn dataField="DOZE" headerText="12" width="42"/>
+			<mx:DataGridColumn dataField="QUATORZE" headerText="14" width="42"/>
+			<mx:DataGridColumn dataField="DEZESSEIS" headerText="16" width="42"/>
+			<mx:DataGridColumn dataField="P" headerText="P" width="42"/>
+			<mx:DataGridColumn dataField="M" headerText="M" width="42"/>
+			<mx:DataGridColumn dataField="G" headerText="G" width="42"/>
+			<mx:DataGridColumn dataField="XG" headerText="XG" width="42"/>
+			<mx:DataGridColumn dataField="checked" textAlign="center" width="57" headerText="EXCLUIR" editable="false">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:VBox width="100%" horizontalAlign="center">
+							<mx:CheckBox selected="{data.checked?true:false}" click="{data.checked=data.checked!=true?true:false}"/>
+						</mx:VBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" click="excluir()"/>
+		<mx:Button label="Excluir Marcados" visible="false" id="bExcluirMarcados" fontWeight="bold" click="excluirMarcados()"/>
+		<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+				  paddingTop="5" themeColor="#000000">
+			<mx:Spacer width="100%"/>
+			<mx:Spacer width="100%"/>
+			<mx:TextInput id="procura" width="156" height="24" keyDown="if(event.keyCode==13) { Service.listar(procura.text) }"/>
+			<mx:Button label="PROCURAR" click="Service.listar(procura.text)"/>
+			
+		</s:HGroup>
+	</mx:ControlBar>
+</components:SuperPanel>

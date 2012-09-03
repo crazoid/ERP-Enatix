@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:local="*"
+					   xmlns:components="components.*"
+					   xmlns:renderers="renderers.*"
+					   xmlns:mx="http://www.adobe.com/2006/mxml" 
+					   width="900" height="500" addedToStage="atualizar()"
+					   creationComplete="dg.addEventListener(ScrollEvent.SCROLL, posicao)"
+					   layout="absolute" title="CONTAS A PAGAR">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ScrollEvent;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+						
+			private var ed:Boolean=false;
+			
+			private var posi:Number=0;
+						
+			private var de_mes:String;
+			private var para_mes:String;
+			
+			[Bindable]
+			private var r:ResultEvent;
+			
+			[Bindable]
+			private var dataInicio:Date = new Date();
+			
+			[Bindable]
+			private var dataFim:Date = somarData(dataInicio,15);
+			
+			[Bindable]
+			private var texto:String="";
+			
+			[Bindable]
+			private var checagem:Boolean=true;
+			
+			[Bindable]
+			private var parcelas:Array = new Array();
+			
+			private var nota:String;
+			private var sdata_vencto:String;
+			private var fornecedor:String;
+			
+			public function atualizar():void{
+				dataInicio = new Date();
+				var diaIni:String = dataInicio.date.toString();
+				var mesIni:String = (dataInicio.month+1).toString();
+				var anoIni:String = dataInicio.fullYear.toString();
+				var dataInicioStr:String = diaIni+"/"+mesIni+"/"+anoIni;
+				
+				dataFim = somarData(dataInicio,15);			
+				var diaFin:String = dataFim.date.toString();
+				var mesFin:String = (dataFim.month+1).toString();
+				var anoFin:String = dataFim.fullYear.toString();
+				var dataFimStr:String = diaFin+"/"+mesFin+"/"+anoFin;				
+				
+				Service.listar('',dataInicioStr,dataFimStr);
+				texto="";
+				checagem=true;
+			}
+			
+			protected function posicao(event:ScrollEvent):void
+			{
+				posi = event.position;
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['DATA_LANCTO'] = janela.dataLancto.text;
+				obj['NOTA'] = janela.cNota.text;
+				obj['FORNECEDOR'] = janela.acFornecedores.selectedItem.ID;
+				obj['LOCALIZADOR'] = janela.acLocalizadores.selectedItem.ID;
+				obj['GRUPO'] = janela.acGrupos.selectedItem.ID;
+				obj['DATA_NOTA'] = janela.dataNF.text;
+				obj['HISTORICO'] = janela.cHistorico.text;
+				obj['OBSERCACAO'] = janela.cObservacao.text;
+				obj['PARCELAS'] = new Array();
+				for(var j:String in janela.dpParcelas){
+					obj['PARCELAS'].push(janela.dpParcelas[j]);
+				}
+				var existe:Boolean = false;
+				Alert.buttonWidth = 90;
+				Alert.yesLabel = "SIM";
+				Alert.noLabel = "NÃO";
+				Service.cadastrar(obj); 
+				this.nota = obj['NOTA'];
+				this.sdata_vencto = obj['PARCELAS'][0].DATA_VENCTO;
+				this.fornecedor = obj['PARCELAS'][0].FORNECEDOR;
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.OK) { novo();	}
+			}
+			
+			public function alertListenerImpressao(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					
+					navigateToURL(new URLRequest('/amfphp/services/contas.php?nota='+nota+';'+sdata_vencto+';'+fornecedor), '_blank'); 
+				
+				}
+				procurar();
+			}		
+			
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['NOTA'] = janela.selected.NOTA;
+				obj['DATA_LANCTO'] = janela.dataLancto.text;
+				obj['NOTA2'] = janela.cNota.text;
+				obj['FORNECEDOR'] = janela.acFornecedores.selectedItem.ID;
+				obj['LOCALIZADOR'] = janela.acLocalizadores.selectedItem.ID;
+				obj['GRUPO'] = janela.acGrupos.selectedItem.ID;
+				obj['DATA_NOTA'] = janela.dataNF.text;
+				obj['HISTORICO'] = janela.cHistorico.text;
+				obj['OBSERCACAO'] = janela.cObservacao.text;
+				obj['PARCELAS'] = new Array();
+				for(var i:String in janela.dpParcelas){
+					obj['PARCELAS'].push(janela.dpParcelas[i]);
+				}				
+				Service.editar(obj);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			protected function processar():void
+			{
+				var popUp:_processa;
+				popUp = PopUpManager.createPopUp(this,_processa,true) as _processa;
+				popUp.title="PROCESSAR DESPESAS FIXAS";
+				popUp.addEventListener("Ouvidor",processa);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function processa(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_processa = (event.target as _processa);
+				de_mes = janela.de_mes.text;
+				para_mes = janela.para_mes.text;
+				obj['DE_MES'] = janela.de_mes.text;
+				obj['PARA_MES'] = janela.para_mes.text;
+				Service.processar(obj);
+			}
+			
+			public function processando(event:Event):void {
+				var obj:Array = new Array();
+				obj['DE_MES'] = de_mes;
+				obj['PARA_MES'] = para_mes;
+				Service.processando(obj);
+			}
+			
+			protected function excluir():void
+			{
+				Alert.buttonWidth = 140;
+				Alert.yesLabel = "SOMENTE PARCELA";
+				Alert.noLabel = "NOTA INTEIRA";
+				Alert.cancelLabel = "CANCELAR";
+				Alert.show("","CONFIRMAÇÃO",Alert.YES|Alert.NO|Alert.CANCEL,null,alertListenerExclusao,null,Alert.NO);
+			}
+			
+			public function alertListenerExclusao(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					Service.excluirParcela(dg.selectedItem.NOTA,dg.selectedItem.FORNECEDOR,dg.selectedItem.DATA_VENCTO);
+				}
+				else if (eventObj.detail==Alert.NO) {
+					Service.excluir(dg.selectedItem.NOTA,dg.selectedItem.FORNECEDOR);
+				}				
+				//bEditar.visible=false;
+				//bExcluir.visible=false;
+				//this.ed=false;
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible = true;				
+					bExcluir.visible = true;
+					this.ed=true;
+				}
+			}
+			
+			protected function imprimirTodos():void
+			{
+				var tmp:Array=new Array();
+				var str:String="";
+				for(var i:String in dg.dataProvider){
+					tmp[i]=dg.dataProvider[i].ID; 	
+				}
+				for(var y:String in tmp){
+					str +=  Number(y)<tmp.length-1? tmp[y]+"," : tmp[y];	
+				}
+				navigateToURL(new URLRequest('/amfphp/services/listagem.php?data_inicial='+dataInicial.text+'&data_final='+dataFinal.text+'&texto='+procura.text), '_blank');
+				
+			}
+			
+			protected function imprimirMarcados():void
+			{
+				var tmp:Array=new Array();
+				var str:String="";
+				for(var i:String in dg.dataProvider){
+					if(dg.dataProvider[i].checked){
+						tmp[i] = new Array();
+						tmp[i]['NOTA']=dg.dataProvider[i].NOTA;
+						tmp[i]['DATA_VENCTO']=dg.dataProvider[i].DATA_VENCTO;
+						tmp[i]['FORNECEDOR']=dg.dataProvider[i].FORNECEDOR;
+					}
+				}
+				for(var y:String in tmp){
+					str +=  Number(y)<tmp.length-1? tmp[y]['NOTA']+";"+tmp[y]['DATA_VENCTO']+","+tmp[y]['FORNECEDOR']+"," : tmp[y]['NOTA']+";"+tmp[y]['DATA_VENCTO']+";"+tmp[y]['FORNECEDOR'];	
+				}
+				navigateToURL(new URLRequest('/amfphp/services/contas.php?nota='+str), '_blank');
+				
+			}
+			
+			private function somarData(data : Date, dias : int):Date
+			{
+				return new Date(data.getTime() + (dias * 1000 * 60 * 60 * 24));
+			}   
+			
+			private function subtrairData(dataInicial : Date, dataFinal : Date):int
+			{   
+				return Math.abs((dataFinal.getTime() - dataInicial.getTime()) / (1000 * 60 * 24 * 60));    
+			}
+			
+			private function totalizar():void{
+				var t:Number=0;
+				for(var i:String in dg.dataProvider){
+					t += parseFloat(dg.dataProvider[i].VALOR);
+				}
+				var tmp:String = t.toString();
+				tmp = tmp.replace(".",",");
+				total.text = moneyFormatter.format(tmp);
+			}
+			
+			protected function procura_keyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode==13) { 
+					procurar();
+				}
+			}
+			
+			protected function procurar():void{	
+				if(periodo.selected){
+					Service.listar(procura.text,dataInicial.text,dataFinal.text);
+				} else {
+					if(procura.text==""){
+						Alert.show("Digite algo para pesquisar.");
+					} else {
+						Service.listar(procura.text,'','');
+					}
+				}
+			}
+			
+			protected function resultado(event:ResultEvent):void{
+				var popUp:_resultado;
+				popUp = PopUpManager.createPopUp(this,_resultado,true) as _resultado;
+				popUp.title="PROCESSAMENTO";
+				popUp.dg.dataProvider = event.result;
+				popUp.de_mes = de_mes;
+				popUp.para_mes = para_mes;
+				popUp.addEventListener("Ouvidor",processando);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			protected function rCadastrar(event:ResultEvent):void {
+				r = event;
+				if(event.result['alerta']=="Cadastrado com sucesso!"){
+					procurar();
+					Alert.show("Deseja imprimir?","Alerta!",3,this,alertListenerImpressao);
+				} else {
+					Alert.buttonWidth = 80;
+					Alert.yesLabel = "SIM";
+					Alert.noLabel = "NÃO";
+					Alert.show(event.result['alerta'],"CONFIRMAÇÃO",Alert.YES|Alert.NO,null,alertListenerCadastrar,null,Alert.NO);
+				}
+			}
+			
+			protected function rInserirParcelas(event:ResultEvent):void{
+				procurar();
+				Alert.show("Deseja imprimir?","Alerta!",3,this,alertListenerImpressao);
+			}
+				
+			public function alertListenerCadastrar(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					Service.inserirParcelas(r.result);
+				}
+				else if (eventObj.detail==Alert.NO) {
+					
+				}				
+				//bEditar.visible=false;
+				//bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="ContaService">
+		<mx:method name="listar" result="dg.dataProvider = event.result;totalizar();dg.verticalScrollPosition = posi;"/>
+		<mx:method name="cadastrar" result="rCadastrar(event)"/>
+		<mx:method name="inserirParcelas" result="rInserirParcelas(event)"/>
+		<mx:method name="editar" result="procurar()"/>
+		<mx:method name="processar" result="resultado(event);"/>
+		<mx:method name="processando" result="procurar()"/>
+		<mx:method name="excluir" result="procurar()"/>
+		<mx:method name="excluirParcela" result="procurar()"/>
+	</mx:RemoteObject>
+	<mx:CurrencyFormatter id="moneyFormatter" 
+						  precision="2" 
+						  rounding="none" 
+						  decimalSeparatorTo="," 
+						  thousandsSeparatorTo="." 
+						  useThousandsSeparator="true" 
+						  useNegativeSign="true" 
+						  currencySymbol="R$ " 
+						  alignSymbol="left"/> 
+	<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+			  paddingTop="5" themeColor="#000000">
+		<mx:CheckBox id="periodo" selected="{checagem}" click="{dataInicial.enabled=!dataInicial.enabled;dataFinal.enabled=!dataFinal.enabled;procurar()}"/>
+		<components:dateField id="dataInicial" selectedDate="{dataInicio}" change="procurar()"/>
+		<mx:Label text="à"/>
+		<components:dateField id="dataFinal" selectedDate="{dataFim}" change="procurar()"/>
+		<mx:Spacer width="100%"/>
+		<mx:Label id="total" fontSize="14" fontWeight="bold"/>
+		<mx:Spacer width="100%"/>
+		<mx:TextInput id="procura" width="122" height="24" text="{texto}" keyDown="procura_keyDownHandler(event)"/>
+		<mx:Button label="PROCURAR" click="procurar()"/>
+		
+	</s:HGroup>
+	<mx:DataGrid id="dg" x="0" y="32" width="100%" height="100%" itemClick="dgClick(event)"
+				 fontWeight="normal" doubleClick="editar()">
+		<mx:columns>
+			<mx:DataGridColumn dataField="NOTA" headerText="NOTA"/>
+			<mx:DataGridColumn width="100" dataField="DATA_VENCTO" headerText="VENCTO"/>
+			<mx:DataGridColumn width="60" dataField="VALOR" headerText="VALOR"/>
+			<mx:DataGridColumn width="45" dataField="FORNECEDOR" headerText=""/>
+			<mx:DataGridColumn dataField="FORNECEDOR_DESC" headerText="FORNECEDOR"/>
+			<mx:DataGridColumn width="30" dataField="LOCALIZADOR" headerText=""/>
+			<mx:DataGridColumn dataField="LOCALIZADOR_DESC" headerText="LOCALIZADOR"/>
+			<mx:DataGridColumn width="30" dataField="GRUPO" headerText=""/>
+			<mx:DataGridColumn dataField="GRUPO_DESC" headerText="GRUPO"/>
+			<mx:DataGridColumn dataField="checked" textAlign="center" width="80" headerText="IMPRIMIR" editable="false">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:VBox width="100%" horizontalAlign="center">
+							<mx:CheckBox selected="{data.checked?true:false}" click="{data.checked=data.checked!=true?true:false}"/>
+						</mx:VBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" fontWeight="bold" click="novo();"/>
+		<mx:Button id="bEditar" label="Editar" visible="false" fontWeight="bold" click="editar()"/>
+		<mx:Button id="bExcluir" label="Excluir" visible="false" fontWeight="bold" click="excluir()"/>
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Procesar Despesas Fixas" fontWeight="bold" click="processar()"/>
+		<mx:Button label="Imprimir Todos" fontWeight="bold" click="imprimirTodos()"/>
+		<mx:Button label="Imprimir Marcados" fontWeight="bold" click="imprimirMarcados()"/>
+	</mx:ControlBar>
+</components:SuperPanel>

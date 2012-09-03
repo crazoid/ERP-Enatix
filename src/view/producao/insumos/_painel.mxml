@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel 
+				title="INSUMOS"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:components2="components.*"
+				xmlns:renderers="renderers.*"
+				xmlns:mx="http://www.adobe.com/2006/mxml" 
+				xmlns:components="components.*" 
+				layout="absolute" width="816" height="446"
+				addedToStage="atualizar()" creationComplete="dg.addEventListener(ScrollEvent.SCROLL, posicao)">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ScrollEvent;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+						
+			private var ed:Boolean=false;
+			
+			private var posi:Number=0;
+			
+			public function atualizar():void{
+				Service.listar('');
+			}
+			
+			protected function posicao(event:ScrollEvent):void
+			{
+				posi = event.position;
+			}
+			
+			private function idSort(obj1:Object, obj2:Object):int 
+			{
+				var num:Number = ((Number)(obj1.ID) - (Number)(obj2.ID));
+				return (num > 0) ? 1 : ((num < 0) ? -1 : 0);	
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				var codigos:Array = new Array();
+				for (var i:String in dg.dataProvider){
+					codigos[i] = dg.dataProvider[i].ID;
+				}
+				popUp.codigos = codigos;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.codigo.text;
+				obj['DESCRICAO'] = janela.iDescricao.text;
+				obj['TIPO'] = janela.cbTipoInsumo.selectedItem.ID;
+				obj['DATA'] = janela.iData.text;
+				obj['PRECO'] = janela.iPreco.text;
+				obj['PRAZO'] = janela.iPrazo.text;
+				obj['DECI'] = janela.decimal.selected?'S':'N';
+				Service.cadastrar(obj);
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+			}
+						
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				var codigos:Array = new Array();
+				for (var i:String in dg.dataProvider){
+					codigos[i] = dg.dataProvider[i].ID;
+				}
+				popUp.codigos = codigos;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			protected function excluir():void
+			{
+				Service.excluir(dg.selectedItem.ID);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ID'] = janela.selected.ID;
+				obj['ID2'] = janela.codigo.text;
+				obj['DESCRICAO'] = janela.iDescricao.text;
+				obj['TIPO'] = janela.cbTipoInsumo.selectedItem.ID;
+				obj['DATA'] = janela.iData.text;
+				obj['PRECO'] = janela.iPreco.text;
+				obj['PRAZO'] = janela.iPrazo.text;
+				obj['DECI'] = janela.decimal.selected?'S':'N';
+				Service.editar(obj);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}			
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+				if(event.columnIndex==6) Service.marcar(dg.selectedItem.ID);
+			}
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="InsumoService">
+		<mx:method name="listar" result="dg.dataProvider = event.result;dg.verticalScrollPosition = posi;"/>
+		<mx:method name="cadastrar" result="Service.listar(procura.text)"/>
+		<mx:method name="editar" result="Service.listar(procura.text)"/>
+		<mx:method name="excluir" result="Service.listar(procura.text)"/>
+		<mx:method name="marcar" result="Service.listar(procura.text)"/>
+	</mx:RemoteObject>
+	<mx:DataGrid id="dg" x="0" y="0" width="100%" height="100%" fontWeight="normal" variableRowHeight="true" itemClick="dgClick(event)" doubleClick="editar()">
+		<mx:columns>
+			<mx:DataGridColumn width="55" sortCompareFunction="idSort" dataField="ID" headerText="COD"/>
+			<mx:DataGridColumn dataField="DESCRICAO" headerText="INSUMO"/>
+			<mx:DataGridColumn dataField="TIPO_DESC" width="100" headerText="TIPO"/>
+			<mx:DataGridColumn dataField="DATA" width="100" headerText="DATA"/>
+			<mx:DataGridColumn dataField="PRECO" width="80" headerText="PRECO"/>
+			<mx:DataGridColumn dataField="PRAZO" width="80" headerText="PRAZO"/>
+			<mx:DataGridColumn dataField="DECI" textAlign="center" width="80" headerText="DECIMAL" editable="false">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:VBox width="100%" horizontalAlign="center">
+							<mx:CheckBox selected="{data.DECI=='S'?true:false}" click="{data.DECI=data.DECI!=true?true:false;}"/>
+						</mx:VBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" click="excluir()"/>
+		<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+				  paddingTop="5" themeColor="#000000">
+			<mx:Spacer width="100%"/>
+			<mx:Spacer width="100%"/>
+			<mx:TextInput id="procura" width="156" height="24" keyDown="if(event.keyCode==13) { Service.listar(procura.text) }"/>
+			<mx:Button label="PROCURAR" click="Service.listar(procura.text)"/>
+			
+		</s:HGroup>
+	</mx:ControlBar>
+</components:SuperPanel>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:mx="http://www.adobe.com/2006/mxml"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx2="library://ns.adobe.com/flex/mx"
+					   xmlns:components="components.*"
+				   layout="absolute" width="950" height="450" title="PRODUTOS" 
+				  addedToStage="atualizar()" creationComplete="dg.addEventListener(ScrollEvent.SCROLL, posicao);">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.utils.ArrayUtil;
+			import mx.rpc.events.ResultEvent;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.events.ScrollEvent;
+			private var posi:Number=0;
+			protected function posicao(event:ScrollEvent):void { posi = event.position;	}
+					
+			private var ed:Boolean=false;
+			private var item1_destino:String="";
+			private var item2_destino:String="";
+			
+			public function atualizar():void{
+				ComboService.departamento();
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['REDUZIDO'] = janela.REDUZIDO.text;
+			    obj['REF'] = janela.REF.text;
+				obj['CODBARFAB'] = janela.CODBARFAB.text;
+				obj['CODBARLOJA'] = janela.CODBARLOJA.text;
+				obj['NCM'] = janela.NCM.text;
+				obj['DESCRICAO'] = janela.DESCRICAO.text;
+				obj['DEPTO'] = janela.acDepartamentos.selectedItem.ID;
+				obj['SUBDEPTO'] = janela.acSubdepartamentos.selectedItem.ID;
+				obj['FORNECEDOR'] = janela.acFornecedores.selectedItem.ID;
+				obj['UNIDADE'] = janela.UNIDADE.text;
+				obj['GRADE'] = janela.GRADE.text;
+//				obj['PRAZO'] = janela.PRAZO.text;
+//				obj['CVALOR'] = janela.CVALOR.text;
+
+//				obj['VMARGEM'] = janela.VMARGEM.text;
+//				obj['VVALOR'] = janela.VVALOR.text;
+
+				obj['DPRAZO'] = janela.DPRAZO.text;
+				obj['DVISTA'] = janela.DVISTA.text;
+				obj['PPRAZO'] = janela.PPRAZO.text;
+				obj['PVISTA'] = janela.PVISTA.text;
+				
+				obj['QV1'] = janela.QV1.text;
+				obj['QV2'] = janela.QV2.text;
+				obj['QV3'] = janela.QV3.text;
+				obj['QV4'] = janela.QV4.text;
+				obj['QV5'] = janela.QV5.text;
+				obj['QV6'] = janela.QV6.text;
+				obj['QV7'] = janela.QV7.text;
+				obj['QV8'] = janela.QV8.text;
+				obj['QV9'] = janela.QV9.text;
+				obj['QV10'] = janela.QV10.text;
+				obj['QV11'] = janela.QV11.text;
+				obj['QV12'] = janela.QV12.text;
+
+				var existe:Boolean = false;
+				for (var i:String in dg.dataProvider){
+					if(obj['REDUZIDO'] == dg.dataProvider[i].REDUZIDO) existe=true;
+				}
+				if(existe){ Alert.show("Item já existente. Deseja cadastrar outro?", "Alert", 3, this, alertListenerNovo, null, Alert.OK); }
+				else { 	Service.cadastrar(obj); }
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo();	}
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.title="EDITAR";
+				popUp.s = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			protected function excluir():void
+			{
+				Service.excluir(dg.selectedItem.REDUZIDO);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['REDUZIDO'] = janela.REDUZIDO.text;
+				obj['REF'] = janela.REF.text;
+				obj['CODBARFAB'] = janela.CODBARFAB.text;
+				obj['CODBARLOJA'] = janela.CODBARLOJA.text;
+				obj['NCM'] = janela.NCM.text;
+				obj['DESCRICAO'] = janela.DESCRICAO.text;
+				obj['DEPTO'] = janela.acDepartamentos.selectedItem.ID;
+				obj['SUBDEPTO'] = janela.acSubdepartamentos.selectedItem.ID;
+				obj['FORNECEDOR'] = janela.acFornecedores.selectedItem.ID;
+				obj['UNIDADE'] = janela.UNIDADE.text;
+				obj['GRADE'] = janela.GRADE.text;
+				
+//				obj['PRAZO'] = janela.PRAZO.text;
+//				obj['CVALOR'] = janela.CVALOR.text;
+				
+//				obj['VMARGEM'] = janela.VMARGEM.text;
+//				obj['VVALOR'] = janela.VVALOR.text;
+				
+				obj['DPRAZO'] = janela.DPRAZO.text;
+				obj['DVISTA'] = janela.DVISTA.text;
+				obj['PPRAZO'] = janela.PPRAZO.text;
+				obj['PVISTA'] = janela.PVISTA.text;
+				
+				obj['QV1'] = janela.QV1.text;
+				obj['QV2'] = janela.QV2.text;
+				obj['QV3'] = janela.QV3.text;
+				obj['QV4'] = janela.QV4.text;
+				obj['QV5'] = janela.QV5.text;
+				obj['QV6'] = janela.QV6.text;
+				obj['QV7'] = janela.QV7.text;
+				obj['QV8'] = janela.QV8.text;
+				obj['QV9'] = janela.QV9.text;
+				obj['QV10'] = janela.QV10.text;
+				obj['QV11'] = janela.QV11.text;
+				obj['QV12'] = janela.QV12.text;
+				
+				Service.editar(obj);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			private function resultHandlerComboDepartamento(event:ResultEvent):void{
+				cbDepartamento.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(item1_destino!=""){
+					for(var a:int;a<cbDepartamento.dataProvider.length;a++){
+						if(item1_destino==cbDepartamento.dataProvider[a].ID){
+							cbDepartamento.selectedItem = cbDepartamento.dataProvider[a];
+						}
+					}
+					item1_destino="";
+				}
+				ComboService.subdepartamento(cbDepartamento.selectedItem.ID);
+			}
+			
+			private function resultHandlerComboSubdepartamento(event:ResultEvent):void{
+				cbSubdepartamento.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(item2_destino!=""){
+					for(var a:int;a<cbSubdepartamento.dataProvider.length;a++){
+						if(item1_destino==cbSubdepartamento.dataProvider[a].ID){
+							cbSubdepartamento.selectedItem = cbSubdepartamento.dataProvider[a];
+						}
+					}
+					item2_destino="";
+				}
+				Service.listar(cbDepartamento.selectedItem.ID,cbSubdepartamento.selectedItem.ID,procura.text,promocao.selected);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+		]]>
+	</mx:Script>
+		<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="ProdutoEstService">
+			<mx:method name="listar" result="dg.dataProvider = event.result;dg.verticalScrollPosition = posi;"/>
+			<mx:method name="cadastrar" result="Service.listar(procura.text)"/>
+			<mx:method name="editar" result="Service.listar(procura.text)"/>
+			<mx:method name="excluir" result="Service.listar(procura.text)"/>
+		</mx:RemoteObject>
+		<mx:RemoteObject id="ComboService" destination="amfphp" showBusyCursor="true" source="ComboService">
+			<mx:method name="departamento" result="resultHandlerComboDepartamento(event)"/>
+			<mx:method name="subdepartamento" result="resultHandlerComboSubdepartamento(event)"/>
+		</mx:RemoteObject>
+	<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+			  paddingTop="5" themeColor="#000000" verticalAlign="middle">
+		<mx:Label fontWeight="bold" text="DEPTO:"/>
+		<mx:ComboBox id="cbDepartamento" rowCount="20" width="276" labelField="DESCRICAO" change="ComboService.subdepartamento(cbDepartamento.selectedItem.ID)"/>
+		<mx:Label fontWeight="bold" text="SUBDEPTO:"/>
+		<mx:ComboBox id="cbSubdepartamento" rowCount="20" width="276" labelField="DESCRICAO" change="Service.listar(cbDepartamento.selectedItem.ID,cbSubdepartamento.selectedItem.ID,procura.text,promocao.selected)"/>
+		<mx:CheckBox id="promocao" label="Em promoção" change="Service.listar(cbDepartamento.selectedItem.ID,cbSubdepartamento.selectedItem.ID,procura.text,promocao.selected)"/>
+	</s:HGroup>
+	<mx:DataGrid id="dg" x="0" y="38" width="100%" height="100%" doubleClick="editar()"
+				 fontWeight="normal" itemClick="dgClick(event)" styleName="DataGridAlinhado"
+				 variableRowHeight="true">
+		<mx:columns>
+			<mx:DataGridColumn width="55" textAlign="center" dataField="REF" headerText="REF"/>
+			<mx:DataGridColumn width="55" textAlign="center" dataField="REDUZIDO" headerText="RED"/>
+			<mx:DataGridColumn dataField="DESCRICAO" headerText="PRODUTO"/>
+			<mx:DataGridColumn width="160" dataField="FORNECEDOR_DESC" headerText="FORNECEDOR"/>
+			<mx:DataGridColumn width="60" textAlign="center" dataField="TOTAL" headerText="QTDE"/>
+			<mx:DataGridColumn width="60" textAlign="center" headerWordWrap="true" dataField="AVISTA_DESC" headerText="PREÇO   À VISTA"/>
+			<mx:DataGridColumn width="65" textAlign="center" headerWordWrap="true" dataField="APRAZO_DESC" headerText="PREÇO   À PRAZO"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()" enabled="false"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" enabled="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" enabled="false" click="excluir()"/>
+		<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+				  paddingTop="5" themeColor="#000000">
+			<mx:Spacer width="100%"/>
+			<mx:Spacer width="100%"/>
+			<mx:TextInput id="procura" width="156" height="24" keyDown="if(event.keyCode==13) { Service.listar(cbDepartamento.selectedItem.ID,cbSubdepartamento.selectedItem.ID,procura.text,promocao.selected) }"/>
+			<mx:Button label="PROCURAR" click="Service.listar(cbDepartamento.selectedItem.ID,cbSubdepartamento.selectedItem.ID,procura.text,promocao.selected)"/>
+		</s:HGroup>
+	</mx:ControlBar>
+</components:SuperPanel>

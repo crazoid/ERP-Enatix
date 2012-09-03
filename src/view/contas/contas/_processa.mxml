@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				width="316" height="160" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			[Bindable]
+			public var selected:Object;	
+			
+			public var codigos:Object;
+			
+			private function init():void{
+				de_mes.setFocus();
+			}
+			
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				dispatchEvent(e);				
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+		
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="75">
+		<s:HGroup x="10" y="10" width="275" textAlign="center">
+			<mx:Label width="55" text="De Mês"/>
+			<mx:TextInput id="de_mes" x="60" y="3" width="86" text="06/2012"/>
+			<mx:Label height="22" fontStyle="italic" text="(exemplo 05/2012)" textAlign="center"/>
+		</s:HGroup>
+	<s:HGroup x="10" y="40" width="275" textAlign="center">
+		<mx:Label text="Para Mês"/>
+			<mx:TextInput id="para_mes" x="60" y="3" width="86" text="07/2012"/>
+			<mx:Label height="22" fontStyle="italic" text="(exemplo 06/2012)" textAlign="center"/>
+	</s:HGroup>
+	</mx:Canvas>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:components="components.*"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:ns1="*"
+				backgroundColor="#FFFFFF" creationComplete="init(event)" layout="absolute"
+				viewSourceURL="srcview/index.html" xmlns:view="view.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import components.SuperPanel;
+			
+			import mx.events.ChildExistenceChangedEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			
+			import view.*;
+			import view.contas.*;
+			import view.contas.contas.*;
+			import view.contas.fornecedores.*;
+			import view.contas.grupos.*;
+			import view.contas.localizadores.*;
+			import view.estoque.departamentos.*;
+			import view.estoque.grades.*;
+			import view.estoque.indices._janela;
+			import view.estoque.processamentos.promocoes.produto._painel;
+			import view.estoque.produtos._painel;
+			import view.estoque.subdepartamentos._painel;
+			import view.producao.*;
+			import view.producao.artigos.*;
+			import view.producao.escolas.*;
+			import view.producao.insumos.*;
+			import view.producao.insumostipos.*;
+			import view.producao.lotes.*;
+			import view.producao.marcacao.*;
+			import view.producao.produtos.*;
+			import view.producao.regras.*;
+
+			public var createdWindows:Number = 0;
+			private var minimizedWindows:Number = 0;
+			private var mWindowArray:Array;
+			private var panels:Array;
+			
+			[Embed("assets/Logotipo.png")]
+			public const logo:Class;
+			
+			[Embed("assets/ico/producao.png")]
+			public const producao:Class;
+			
+			[Embed("assets/ico/contas-a-pagar.png")]
+			public const contas:Class;
+			
+			[Embed("assets/ico/estoque.png")]
+			public const estoque:Class;
+			
+			[Embed("assets/ico/vendas.png")]
+			public const vendas:Class;
+			
+			[Embed("assets/ico/relatorios.png")]
+			public const relatorios:Class;
+			
+			[Embed("assets/ico/escolas.png")]
+			public const escolas:Class;
+			
+			[Embed("assets/ico/artigos.png")]
+			public const artigos:Class;
+			
+			[Embed("assets/ico/tipos-de-insumos.png")]
+			public const tipos:Class;
+			
+			[Embed("assets/ico/insumos.png")]
+			public const insumos:Class;
+			
+			[Embed("assets/ico/regras.png")]
+			public const regras:Class;
+			
+			[Embed("assets/ico/produto.png")]
+			public const produtos:Class;
+			
+			[Embed("assets/ico/lotes.png")]
+			public const lotes:Class;
+			
+			[Embed("assets/ico/marcacao.png")]
+			public const marcacao:Class;
+			
+			private function addPanelHandler(panel:SuperPanel):void {
+				createdWindows += 1;
+
+				panel.showControls = true;
+				panel.enableResize = true;
+				panel.visible = true;
+
+				panel.width = panel.width;
+				panel.height = panel.height;
+				panel.x = createdWindows * 20;
+				panel.y = createdWindows * 20;
+								
+				this.addChild(panel);
+			}
+					
+			protected function init(event:FlexEvent):void
+			{	
+				var dat:Date = new Date();
+				var hora:int = dat.hours;
+				var minuto:String = dat.minutes.toString().length<2 ? "0"+dat.minutes : dat.minutes.toString();
+				var segundo:String = dat.seconds.toString().length<2 ? "0"+dat.seconds : dat.seconds.toString();
+				var dia:String = dat.date.toString().length<2 ? "0"+dat.date : dat.date.toString();
+				var mes:String = dat.month.toString().length<2 ? "0"+dat.month : dat.month.toString();
+				var ano:int = dat.fullYear;
+				atualizacao.text = "última atualização em "+dia+"/"+mes+"/"+ano+" - "+hora+":"+minuto;
+				panels = new Array();	
+				
+				//Produção
+				panels['pArtigos'] = new view.producao.artigos._painel;
+				panels['pEscolas'] = new view.producao.escolas._painel;
+				panels['pInsumosTipos'] = new view.producao.insumostipos._painel;
+				panels['pInsumos'] = new view.producao.insumos._painel;
+				panels['pRegras'] = new view.producao.regras._painel;
+				panels['pProdutos'] = new view.producao.produtos._painel;
+				panels['pLotes'] = new view.producao.lotes._painel;
+				panels['pMarcacao'] = new view.producao.marcacao._painel;
+				
+				//Contas
+				panels['pContas'] = new view.contas.contas._painel;
+				panels['pFornecedores'] = new view.contas.fornecedores._painel;
+				panels['pGrupos'] = new view.contas.grupos._painel;
+				panels['pLocalizadores'] = new view.contas.localizadores._painel;
+				
+				//Estoque
+				panels['pDepartamentos'] = new view.estoque.departamentos._painel();
+				panels['pSubdepartamentos'] = new view.estoque.subdepartamentos._painel();
+				panels['pGrades'] = new view.estoque.grades._painel();
+				panels['pProdutosEst'] = new view.estoque.produtos._painel();
+				panels['proProdutos'] = new view.estoque.processamentos.promocoes.produto._painel();
+			}
+			
+			protected function menuClickHandler(event:MenuEvent):void
+			{
+				if(event.item.@indice=='pIndices'){
+					var popUp:view.estoque.indices._janela;
+					popUp = PopUpManager.createPopUp(this,view.estoque.indices._janela,true) as view.estoque.indices._janela;
+					popUp.title="ÍNDICES";
+					PopUpManager.centerPopUp(popUp);
+				} else {
+					addPanelHandler(SuperPanel(panels[event.item.@indice]));
+				}
+			}
+						
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="assets/css/styles.css"/>
+
+	<mx:MenuBar id="mnBr" x="0" y="0" width="100%" height="45" cornerRadius="0" dataProvider="{menu}"
+				fontWeight="bold" iconField="@icone" itemClick="menuClickHandler(event)"
+				labelField="@label"/>	
+	
+	<mx:XMLListCollection id="menu">
+		<mx:source>
+			<mx:XMLList xmlns="">
+				<topmenu label="" icone="logo"/>
+				<topmenu label="PRODUÇÃO" icone="producao" enabled="true">
+					<submenu label="Escolas" indice="pEscolas" enabled="true"/>
+					<submenu label="Artigos" indice="pArtigos" enabled="true"/>
+					<submenu label="Tipos de Insumos" indice="pInsumosTipos" enabled="true"/>
+					<submenu label="Insumos" indice="pInsumos" enabled="true"/>
+					<submenu label="Regras" indice="pRegras" enabled="true"/>
+					<submenu label="Confecções" indice="pProdutos" enabled="true"/>
+					<submenu label="Lotes de Confecções" indice="pMarcacao" enabled="true"/>
+				</topmenu>
+				<topmenu label="CONTAS A PAGAR" icone="contas">
+					<submenu label="Localizadores" indice="pLocalizadores" enabled="true"/>
+					<submenu label="Grupos" indice="pGrupos" enabled="true"/>
+					<submenu label="Fornecedores" indice="pFornecedores"/>
+					<fake label="__________" enabled="false"/>
+					<submenu label="Contas a Pagar" indice="pContas"/>
+				</topmenu>
+				<topmenu label="ESTOQUE" icone="estoque" enabled="true">
+					<submenu label="Fornecedores" indice="pFornecedores" enabled="true"/>
+					<submenu label="Departamentos" indice="pDepartamentos" enabled="true"/>
+					<submenu label="Sub-departamentos" indice="pSubdepartamentos" enabled="true"/>
+					<submenu label="Grades" indice="pGrades" enabled="true"/>
+					<submenu label="Índices" indice="pIndices" enabled="true"/>
+					<submenu label="Produtos" indice="pProdutosEst" enabled="true"/>
+					<fake label="__________" enabled="false"/>
+					<submenu label="Processamentos" enabled="true">
+						<submenu label="Promoções" enabled="true">
+							<submenu label="Por Fornecedor" enabled="false"/>
+							<submenu label="Por Departamento" enabled="false"/>
+							<submenu label="Por Subdepartamento" enabled="false"/>
+							<submenu label="Por Produto" indice="proProduto" enabled="true"/>
+						</submenu>					
+						<submenu label="Encomendas" enabled="true">
+							<submenu label="Entrada" enabled="false"/>
+							<submenu label="Saída" enabled="false"/>
+						</submenu>
+						<submenu label="Lotes" enabled="true">
+							<submenu label="Entrada" enabled="false"/>
+							<submenu label="Conferência" enabled="false"/>
+							<submenu label="Liberação" enabled="false"/>
+						</submenu>
+						<submenu label="Balanço" enabled="true">
+							<submenu label="Entrada" enabled="false"/>
+							<submenu label="Integração" enabled="false"/>
+						</submenu>
+						<submenu label="Margens de lucro" enabled="false"/>
+					</submenu>
+				</topmenu>
+				<topmenu label="VENDAS" icone="vendas" enabled="true">
+					<submenu label="A/F Caixa" enabled="false"/>
+					<submenu label="Clientes" enabled="false"/>
+					<submenu label="Emissão de Pre-venda" enabled="false"/>
+					<submenu label="Re-emissão de Pre-venda" enabled="false"/>
+					<submenu label="Planos de Pagamento" enabled="false"/>
+					<submenu label="Vendedores" enabled="false"/>
+					<submenu label="Crediario" enabled="true">
+						<submenu label="Emissão de Carnê" enabled="false"/>
+						<submenu label="Receber ou Baixar" enabled="false"/>
+						<submenu label="Estorno" enabled="false"/>
+						<submenu label="Acordo" enabled="false"/>
+				</submenu>
+				</topmenu>
+				<topmenu label="RELATÓRIOS" icone="relatorios" enabled="true">
+					<submenu label="Previsões de Compra" enabled="true">
+						<submenu label="Analítico" enabled="true">
+							<submenu label="Por Fornecedor" enabled="false"/>
+							<submenu label="Por Departamento" enabled="false"/>
+							<submenu label="Por Sub-departamento" enabled="false"/>
+						</submenu>
+						<submenu label="Sintético" enabled="true">
+							<submenu label="Por Fornecedor" enabled="false"/>
+							<submenu label="Por Departamento" enabled="false"/>
+							<submenu label="Por Sub-departamento" enabled="false"/>
+						</submenu>
+					</submenu>
+					<submenu label="Preços" enabled="false"/>
+					<submenu label="Conferência de Lotes" enabled="false"/>
+					<submenu label="Vendas" enabled="false"/>
+					<submenu label="Faturas" enabled="false"/>
+					<submenu label="Cobrança" enabled="true">
+						<submenu label="Em atraso" enabled="false"/>
+						<submenu label="Carta lembrete" enabled="false"/>
+						<submenu label="Carta SPC" enabled="false"/>
+						<submenu label="Carta acordo" enabled="false"/>
+					</submenu>
+				</topmenu>
+			</mx:XMLList>
+		</mx:source>
+	</mx:XMLListCollection>
+	<mx:Button x="75" y="329" width="123" height="101" label="LOTES"
+			   click="addPanelHandler(SuperPanel(panels['pMarcacao']))" enabled="true"
+			   icon="@Embed(source='assets/ico/g-producao.png')" labelPlacement="bottom"
+			   skin="skins.CustomButtonIconeSkin"/>
+	<mx:Button x="238" y="83" width="119" label="CONTAS"
+			   icon="@Embed(source='assets/ico/g-contas-a-pagar.png')" labelPlacement="bottom"
+			   skin="skins.CustomButtonIconeSkin" click="addPanelHandler(SuperPanel(panels['pContas']))"/>
+	<mx:Button x="77" y="83" width="121" height="88" label="FORNECEDORES"
+			   click="addPanelHandler(SuperPanel(panels['pFornecedores']))"
+			   icon="@Embed(source='assets/ico/g-fornecedores.png')" labelPlacement="bottom"
+			   skin="skins.CustomButtonIconeSkin"/>
+	<mx:Button x="77" y="211" width="121" label="CONFECÇÕES"
+			   icon="@Embed(source='assets/ico/g-roupa.png')" labelPlacement="bottom"
+			   skin="skins.CustomButtonIconeSkin" click="addPanelHandler(SuperPanel(panels['pProdutos']))"/>
+	<mx:Text id="atualizacao" x="10" y="53"/>
+	<mx:Button x="234" y="211" width="123" label="PRODUTOS"
+			   icon="@Embed(source='assets/ico/g-produtos.png')" labelPlacement="bottom"
+			   skin="skins.CustomButtonIconeSkin" click="addPanelHandler(SuperPanel(panels['pProdutosEst']))"/>
+
+</mx:Application>

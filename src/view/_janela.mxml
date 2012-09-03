@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- http://blog.flexexamples.com/2008/08/16/creating-an-undraggable-titlewindow-container-in-flex/ -->
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="604" height="550" close="fecharSemSalvar()" creationComplete="init();"
+				layout="absolute" showCloseButton="true">
+	<mx:states>
+		<mx:State name="regra">
+			<mx:SetProperty name="width" value="786"/>
+			<mx:SetProperty name="height" value="404"/>
+			<mx:AddChild position="lastChild">
+				<mx:Form x="10" y="10" width="738" height="302">
+					<mx:FormItem width="700" height="85" label="Artigos">
+						<components:AutoComplete id="acRegraArtigos" width="630" height="100%"												 allowEditingNewValues="true"
+												 allowMultipleSelection="true"
+												 allowNewValues="true"
+												 dropDownLabelFunction="dropDownLabelFunction_RegraArtigos"
+												 labelField="DESCRICAO" matchType="word"
+												 selectedItemStyleName="facebook"/>
+					</mx:FormItem>
+					<mx:FormItem width="700" height="85" label="Insumos">
+						<components:AutoComplete id="acRegraInsumos" width="631" height="100%"												 allowEditingNewValues="true"
+												 allowMultipleSelection="true"
+												 allowNewValues="true"
+												 dropDownLabelFunction="dropDownLabelFunction_RegraInsumos"
+												 labelField="DESCRICAO" matchType="word"
+												 selectedItemStyleName="facebook"/>
+					</mx:FormItem>
+					<mx:VBox width="700" height="84" textAlign="center">
+						<mx2:Label width="688" fontWeight="bold" text="QUANTIDADES"/>
+						<mx:Grid width="696" height="57" paddingBottom="0" paddingLeft="0" paddingRight="0"
+								 paddingTop="0" textAlign="center">
+							<mx:GridRow width="689" height="21">
+								<mx:GridItem width="100%" height="100%" textAlign="center">
+									<mx:Label width="100%" fontWeight="bold" text="02"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="04" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="06" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="08" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="10" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="12" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="14" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="16" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="P" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="M" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="G" textAlign="center"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:Label width="100%" fontWeight="bold" text="XG" textAlign="center"/>
+								</mx:GridItem>
+							</mx:GridRow>
+							<mx:GridRow width="690" height="26">
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="dois" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="quatro" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="seis" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="oito" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="dez" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="doze" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="quatorze" width="50" focusOut="formatVal(event)"
+												  maxChars="5" text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="dezesseis" width="50" focusOut="formatVal(event)"
+												  maxChars="5" text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="p" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="m" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="g" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="100%">
+									<mx:TextInput id="xg" width="50" focusOut="formatVal(event)" maxChars="5"
+												  text=""/>
+								</mx:GridItem>
+							</mx:GridRow>
+						</mx:Grid>
+					</mx:VBox>
+					
+				</mx:Form>
+			</mx:AddChild>
+		</mx:State>
+	</mx:states>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+	<mx:RemoteObject id="ComboService" destination="amfphp" source="ComboService" showBusyCursor="true">
+		<mx:method id="produto" name="produto" result="resultHandlerComboProduto(event)"/>
+		<mx:method id="produtoCopia" name="produtoCopia" result="resultHandlerComboProdutoCopia(event)"/>
+		<mx:method id="regraArtigos" name="regraArtigos" result="resultHandlerComboRegraArtigos(event)"/>
+		<mx:method id="regraInsumos" name="regraInsumos" result="resultHandlerComboRegraInsumos(event)"/>
+		<mx:method id="produtoEscola" name="produtoEscola" result="resultHandlerComboProdutoEscola(event)"/>
+		<mx:method id="produtoArtigos" name="produtoArtigos" result="resultHandlerComboProdutoArtigos(event)"/>
+		<mx:method id="produtoInsumo" name="produtoInsumo" result="resultHandlerComboProdutoInsumos(event)"/>
+		<mx:method id="insumo" name="insumo" result="resultHandlerComboInsumo(event)"/>
+	</mx:RemoteObject>
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.controls.Text;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.formatters.SwitchSymbolFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.*;
+			import mx.utils.ArrayUtil;
+			import com.hillelcoren.utils.StringUtils;
+			
+			public var cad:Boolean;
+			public var dg:DataGrid;
+			
+			public function atualizar():void{
+
+			}
+			
+			[Bindable]
+			public var maior:Number;
+			
+			[Bindable]
+			public var selected:Object;
+					
+			[Bindable]
+			public var date:String;
+			
+			private function fecharSemSalvar():void{
+				Alert.buttonWidth = 140;
+				Alert.yesLabel = "SIM";
+				Alert.noLabel = "NÃO";
+				Alert.show("Deseja salvar?","CONFIRMAÇÃO",3,this,alertListenerSalvar);
+			}
+			
+			
+			public function alertListenerSalvar(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					fechar(null);
+				}
+				if (eventObj.detail==Alert.NO) {
+					PopUpManager.removePopUp(this);
+				}				
+			}
+
+
+			
+			
+			
+			private function resultHandlerComboRegraArtigos(event:ResultEvent):void{
+				acRegraArtigos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+			}
+			
+			private function resultHandlerComboRegraInsumos(event:ResultEvent):void{
+				acRegraInsumos.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+			}
+			
+			private var verif:Boolean = true;
+			private function init():void{
+				if(this.title=="EDITAR"){
+					switch(this.currentState){
+						case "produto_regra": 
+							ComboService.regraArtigos();
+							ComboService.regraInsumos();
+							acRegraArtigos.setFocus();
+							break;
+					}
+				}
+				
+				if(this.title=="NOVO"){
+					switch(this.currentState){
+						case "regra":
+							ComboService.regraArtigos();
+							ComboService.regraInsumos();
+							acRegraArtigos.setFocus();
+							break;
+					}
+				}
+			}
+
+
+			private function alertListenerLote(event:CloseEvent):void{
+				var e:Event = new Event("Ouvidor");
+				if(event.detail==Alert.YES){ dispatchEvent(e); PopUpManager.removePopUp(this); }
+				if(event.detail==Alert.NO) {  }
+			}
+			
+			private function vencido(dataVenc:String):Boolean {
+				var Data1:Date = new Date();
+				var Data2:Date;
+				
+				var dateParsed:String ;
+				dateParsed = Data1.getFullYear()+'/'+(Data1.getMonth()+1)+'/'+Data1.date ;
+				Data1 = new Date( dateParsed ) ;
+				
+				dateParsed = dataVenc ;
+				dateParsed = dateParsed.substr(6,4)+'/'+dateParsed.substr(3,2)+'/'+dateParsed.substr(0,2)
+				Data2 = new Date( dateParsed ) ;
+				
+				if ( Data2 < Data1 ) {
+					return true ;
+				}                    
+				return false ;
+			}
+
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				if(currentState=="lote"){
+					if(this.title=="EDITAR")
+						Alert.show('Esse processo irá zerar a marcação dos produtos contidos nesse lote, deseja continuar?','Alerta!',3,this,alertListenerLote);
+					else {
+						dispatchEvent(e);
+						PopUpManager.removePopUp(this);
+					}
+				}
+			}
+					
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			private function formatVal(evt:FocusEvent):void {
+				
+				var switcher:SwitchSymbolFormatter=new SwitchSymbolFormatter('#');
+				
+				if(evt.target.text.length==1) evt.target.text = switcher.formatValue("#.000", evt.target.text);
+				if(evt.target.text.length==2) evt.target.text = switcher.formatValue("#.#00", evt.target.text);
+				if(evt.target.text.length==3) evt.target.text = switcher.formatValue("#.##0", evt.target.text);
+				if(evt.target.text.length==4) evt.target.text = switcher.formatValue("#.###", evt.target.text);
+			}
+
+			public function dropDownLabelFunction_RegraArtigos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acRegraArtigos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acRegraArtigos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			public function dropDownLabelFunction_RegraInsumos( item:Object ):String
+			{
+				var string:String = item.DESCRICAO;
+				var searchStr:String = acRegraInsumos.searchText;
+				var returnStr:String = StringUtils.highlightMatch( string, searchStr );
+				if (acRegraInsumos.selectedItems.getItemIndex( item ) >= 0)
+				{
+					returnStr = "<font color='" + Consts.COLOR_TEXT_DISABLED + "'>" + returnStr + "</font>";
+				}
+				return returnStr;
+			}
+			
+			private function converteData(d:String):String{
+				return d.substr(3,2)+"/"+d.substr(0,2)+"/"+d.substr(6,4);
+			}
+						
+		]]>
+	</mx:Script>
+	
+</mx:TitleWindow>

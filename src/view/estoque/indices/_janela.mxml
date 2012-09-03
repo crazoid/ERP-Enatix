@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				width="832" height="244" close="PopUpManager.removePopUp(this);" creationComplete="init();"
+				layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.events.ResultEvent;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			
+			[Bindable]
+			public var s:Object;			
+			
+			private function init():void{
+				Service.listar();
+				if(title=="VISUALIZA ÍNDICES"){
+					CST_FIN.editable=false;
+					TXA_DEF.editable=false;
+					CST_OPE.editable=false; 
+					QV1.editable=false;
+					QV2.editable=false;
+					QV3.editable=false;
+					QV4.editable=false;
+					QV5.editable=false;
+					QV6.editable=false;
+					QV7.editable=false;
+					QV8.editable=false;
+					QV9.editable=false;
+					QV10.editable=false;
+					QV11.editable=false;
+					QV12.editable=false;
+					btnSalvar.enabled=false;
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");			
+				if(evt == null) dispatchEvent(e);				
+				PopUpManager.removePopUp(this);	
+			}
+			
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+			
+			public function cadastrar():void{
+				var o:Array = new Array();
+				o['CST_FIN'] = CST_FIN.text;
+				o['TXA_DEF'] = TXA_DEF.text;
+				o['CST_OPE'] = CST_OPE.text; 
+				o['v0_15'] = QV1.text;
+				o['v16_30'] = QV2.text;
+				o['v31_45'] = QV3.text;
+				o['v46_60'] = QV4.text;
+				o['v61_75'] = QV5.text;
+				o['v76_90'] = QV6.text;
+				o['v91_105'] = QV7.text;
+				o['v106_120'] = QV8.text;
+				o['v121_135'] = QV9.text;
+				o['v136_150'] = QV10.text;
+				o['v151_165'] = QV11.text;
+				o['v166_180'] = QV12.text;
+				trace(o);
+				Service.cadastrar(o);
+			}
+			
+			private function rCadastrar(event:ResultEvent):void{
+				Alert.show(event.result['alerta']);
+				PopUpManager.removePopUp(this)
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="IndiceService">
+		<mx:method name="listar" result="s = event.result"/>
+		<mx:method name="cadastrar" result="rCadastrar(event)"/>
+	</mx:RemoteObject>
+	<mx:Form x="10" y="16" width="783" height="58" borderStyle="solid" cornerRadius="5">
+		<mx:HBox width="743" horizontalAlign="right">
+			<mx:FormItem label="CUSTO FINANCEIRO (%)" fontWeight="bold">
+				<mx:TextInput id="CST_FIN" width="55" fontWeight="normal" text="{s.CST_FIN}"/>
+			</mx:FormItem>
+			<mx:Spacer x="198" width="34" height="22"/>
+			<mx:FormItem label="TAXA (% deflação)" fontWeight="bold">
+				<mx:TextInput id="TXA_DEF" width="55" fontWeight="normal" text="{s.TXA_DEF}"/>
+			</mx:FormItem>
+			<mx:Spacer width="34" height="22"/>
+			<mx:FormItem label="CUSTO OPERACIONAL (%)" fontWeight="bold">
+				<mx:TextInput id="CST_OPE" width="55" fontWeight="normal" text="{s.CST_OPE}"/>
+			</mx:FormItem>
+		</mx:HBox>
+	</mx:Form>
+	<mx:Text x="318" y="84" fontSize="14" fontWeight="bold" text="PRAZOS DE COMPRA"/>
+	<mx:Grid x="10" y="106" width="783" height="54">
+		<mx:GridRow width="100%" height="21">
+			<mx:GridItem width="100%" height="100%" textAlign="center">
+				<mx:Label id="Q1" width="100%" fontWeight="bold" text="0-15"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q2" width="100%" fontWeight="bold" text="16-30" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q3" width="100%" fontWeight="bold" text="31-45" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q4" width="100%" fontWeight="bold" text="46-60" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q5" width="100%" fontWeight="bold" text="61-75" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q6" width="100%" fontWeight="bold" text="76-90" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q7" width="100%" fontWeight="bold" text="91-105" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q8" width="100%" fontWeight="bold" text="106-120" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q9" width="100%" fontWeight="bold" text="121-135" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q10" width="100%" fontWeight="bold" text="136-150" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q11" width="100%" fontWeight="bold" text="151-165" textAlign="center"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label id="Q12" width="100%" fontWeight="bold" text="166-180" textAlign="center"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="22">
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV1" width="57" text="{s.V0_15}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV2" width="57" text="{s.V16_30}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV3" width="57" text="{s.V31_45}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV4" width="57" text="{s.V46_60}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV5" width="57" text="{s.V61_75}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV6" width="57" text="{s.V76_90}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV7" width="57"
+								   text="{s.V91_105}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV8" width="57"
+								   text="{s.V106_120}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV9" width="57" text="{s.V121_135}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV10" width="57" text="{s.V136_150}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV11" width="57" text="{s.V151_165}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextInput id="QV12" width="57" text="{s.V166_180}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+	</mx:Grid>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" id="btnSalvar" fontWeight="bold" click="cadastrar()"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>	
+</mx:TitleWindow>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx2="library://ns.adobe.com/flex/mx"
+				xmlns:components2="components.*"
+				xmlns:components="com.hillelcoren.components.*"
+				width="754" height="168" close="PopUpManager.removePopUp(this);"
+				creationComplete="init();" layout="absolute" showCloseButton="true">
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.events.ResultEvent;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import com.hillelcoren.utils.StringUtils;
+			import mx.collections.*;
+			import mx.utils.ArrayUtil;
+			
+			[Bindable]
+			public var selected:Object;	
+					
+			public var verif:Boolean;
+						
+			private function init():void{
+				if(this.title=="EDITAR"){ 
+					nsdois.setFocus();
+					verif=false;
+				}
+				
+				if(this.title=="NOVO"){ 
+					nsdois.setFocus();
+					verif=true;
+				}
+			}
+			private function fechar(evt:CloseEvent):void	
+			{
+				var e:Event = new Event("Ouvidor");
+				dispatchEvent(e);				
+				PopUpManager.removePopUp(this);
+			}
+					
+			public function faultHandler(event:FaultEvent):void
+			{
+				Alert.show(event.fault.faultString, event.fault.faultCode.toString());				
+			}
+		]]>
+	</mx:Script>
+	<mx:FormItem width="722" height="87" textAlign="center">
+		<mx:VBox width="708" height="84" textAlign="center">
+			<mx2:Label width="688" fontWeight="bold" text="QUANTIDADES"/>
+			<mx:Grid width="701" height="57" paddingBottom="0" paddingLeft="0" paddingRight="0"
+					 paddingTop="0" textAlign="center">
+				<mx:GridRow width="100%" height="21">
+					<mx:GridItem width="100%" height="100%" textAlign="center">
+						<mx:Label width="100%" fontWeight="bold" text="02"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="04" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="06" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="08" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="10" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="12" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="14" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="16" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="P" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="M" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="G" textAlign="center"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:Label width="100%" fontWeight="bold" text="XG" textAlign="center"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow width="100%" height="26">
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsdois" width="50" maxChars="2"
+										   maximum="999" value="{selected.DOIS}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsquatro" width="50" maxChars="2"
+										   maximum="999" value="{selected.QUATRO}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsseis" width="50" maximum="999"
+										   value="{selected.SEIS}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsoito" width="50" maximum="999"
+										   value="{selected.OITO}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsdez" width="50" maximum="999"
+										   value="{selected.DEZ}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsdoze" width="50" maximum="999"
+										   value="{selected.DOZE}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsquatorze" width="50" maximum="999"
+										   value="{selected.QUATORZE}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsdezesseis" width="50" maximum="999"
+										   value="{selected.DEZESSEIS}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsp" width="50" maximum="999"
+										   value="{selected.P}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsm" width="50" maximum="999"
+										   value="{selected.M}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsg" width="50" maximum="999"
+										   value="{selected.G}"/>
+					</mx:GridItem>
+					<mx:GridItem width="100%" height="100%">
+						<mx:NumericStepper id="nsxg" width="50" maximum="999"
+										   value="{selected.XG}"/>
+					</mx:GridItem>
+				</mx:GridRow>
+			</mx:Grid>
+		</mx:VBox>
+	</mx:FormItem>
+	<mx:ControlBar textAlign="center">
+		<mx:Spacer width="100%"/>
+		<mx:Button label="Salvar" fontWeight="bold" click="fechar(null)"/>
+		<mx:Button label="Cancelar" fontWeight="bold" click="PopUpManager.removePopUp(this)"/>
+		<mx:Spacer width="100%"/>
+	</mx:ControlBar>
+</mx:TitleWindow>

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:SuperPanel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" title="PRODUTOS"
+				  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:components="components.*" layout="absolute" width="864" height="506"
+				  addedToStage="atualizar()">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.IndexChangedEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+						
+			private var ed:Boolean=false;
+			private var escola_destino:String="";
+			private var artigo_destino:String="";
+			private var selectedArtigo:int;
+			private var escola_anterior:String="";
+			
+			public function atualizar():void{
+				ComboService.escola();
+			}
+			
+			public function novo():void {
+				var popUp:_janela;
+				popUp = PopUpManager.createPopUp(this,_janela,true) as _janela;
+				popUp.selected = cbEscola.selectedItem;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",cadastra);
+				PopUpManager.centerPopUp(popUp);
+			}
+			
+			public function cadastra (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janela = (event.target as _janela);
+				obj['ESCOLA'] = cbEscola.selectedItem.ID;
+				obj['ARTIGOS'] = janela.acProdutoArtigos.selectedItems;
+				Service.cadastrar(obj);
+			}
+			
+			public function alertListenerNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { novo(); }
+			}
+			
+			protected function dgClick(event:ListEvent):void
+			{
+				if(!ed){
+					bEditar.visible=true;
+					bExcluir.visible=true;
+					this.ed=true;
+				}
+			}
+			
+			protected function editar():void
+			{
+				var popUp:_janelaMarcacao;
+				popUp = PopUpManager.createPopUp(this,_janelaMarcacao,true) as _janelaMarcacao;
+				popUp.title="EDITAR";
+				popUp.selected = dg.selectedItem;
+				popUp.addEventListener("Ouvidor",edita);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function edita(event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janelaMarcacao = (event.target as _janelaMarcacao);
+				obj['ARTIGO'] = cbArtigo.selectedItem.ID;
+				obj['ESCOLA'] = cbEscola.selectedItem.ID;
+				obj['INSUMO'] = dg.selectedItem.INSUMO_ID;
+				obj['DOIS'] = janela.nsdois.text;
+				obj['QUATRO'] = janela.nsquatro.text;
+				obj['SEIS'] = janela.nsseis.text;
+				obj['OITO'] = janela.nsoito.text;
+				obj['DEZ'] = janela.nsdez.text;
+				obj['DOZE'] = janela.nsdoze.text;
+				obj['QUATORZE'] = janela.nsquatorze.text;
+				obj['DEZESSEIS'] = janela.nsdezesseis.text;
+				obj['P'] = janela.nsp.text;
+				obj['M'] = janela.nsm.text;
+				obj['G'] = janela.nsg.text;
+				obj['XG'] = janela.nsxg.text;
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				ed=false;
+				Service.editar(obj);
+			}
+			
+			protected function excluir():void
+			{
+				Service.excluir(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID,dg.selectedItem.INSUMO_ID);
+				bEditar.visible=false;
+				bExcluir.visible=false;
+				this.ed=false;
+			}
+			
+			protected function inserir():void
+			{
+				var popUp:_janelaInserir;
+				popUp = PopUpManager.createPopUp(this,_janelaInserir,true) as _janelaInserir;
+				popUp.title="NOVO";
+				var t:Array = new Array();
+				t['ESCOLA'] = cbEscola.selectedItem.ID;
+				t['ARTIGO'] = cbArtigo.selectedItem.ID;
+				popUp.selected = t;
+				popUp.addEventListener("Ouvidor",insere);
+				PopUpManager.centerPopUp(popUp);				
+			}
+			
+			public function insere (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janelaInserir = (event.target as _janelaInserir);
+				obj['ESCOLA'] = cbEscola.selectedItem.ID;
+				obj['ARTIGO'] = cbArtigo.selectedItem.ID;
+				obj['INSUMOS'] = janela.acInsumos.selectedItems;
+				Service.inserir(obj);
+			}
+
+			protected function copiar():void
+			{
+				var popUp:_janelaCopiar;
+				popUp = PopUpManager.createPopUp(this,_janelaCopiar,true) as _janelaCopiar;
+				popUp.title="NOVO";
+				popUp.addEventListener("Ouvidor",copia);
+				PopUpManager.centerPopUp(popUp);				
+			}
+
+			public function copia (event:Event):void {
+				var obj:Array = new Array();
+				var janela:_janelaCopiar = (event.target as _janelaCopiar);
+				obj['ESCOLA_ORIGEM'] = cbEscola.selectedItem.ID;
+				obj['ARTIGO_ORIGEM'] = cbArtigo.selectedItem.ID;
+				obj['ESCOLA_DESTINO'] = janela.acProdutoCopia.selectedItem.ESCOLA;
+				obj['ARTIGO_DESTINO'] = janela.acProdutoCopia.selectedItem.ARTIGO;
+				escola_destino = janela.acProdutoCopia.selectedItem.ESCOLA;
+				artigo_destino = janela.acProdutoCopia.selectedItem.ARTIGO;
+				Service.copiar(obj);
+			}
+			
+			private function resultHandlerComboEscola(event:ResultEvent):void{
+				cbEscola.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+				if(escola_destino!=""){
+					for(var a:int;a<cbEscola.dataProvider.length;a++){
+						if(escola_destino==cbEscola.dataProvider[a].ID){
+							cbEscola.selectedItem = cbEscola.dataProvider[a];
+						}
+					}
+					escola_destino="";
+				}
+				escola_anterior = cbEscola.selectedItem.ID;
+				ComboService.artigo(cbEscola.selectedItem.ID);
+			}
+			
+			private function resultHandlerComboArtigo(event:ResultEvent):void{
+				var existe:Boolean=false;
+				if(event.result!=false){
+					cbArtigo.dataProvider = new ArrayCollection(ArrayUtil.toArray(event.result));
+					if(artigo_destino!=""){
+						for(var a:int;a<cbArtigo.dataProvider.length;a++){
+							if(artigo_destino==cbArtigo.dataProvider[a].ID){
+								cbArtigo.selectedItem = cbArtigo.dataProvider[a];
+							}
+						}
+						artigo_destino="";
+					}
+					if(fixar.selected){
+						var passou:Boolean = false;
+						for(var b:int;b<cbArtigo.dataProvider.length;b++){
+							if(selectedArtigo==cbArtigo.dataProvider[b].ID){
+								cbArtigo.selectedItem = cbArtigo.dataProvider[b];
+								passou=true;
+							}
+						}
+						if(!passou){
+							Alert.show("O artigo fixado não está cadastrado para essa escola, deseja cadastrar o fixado?","Alerta!",Alert.YES|Alert.NO,null,alertListenerCadastro,null,Alert.NO);
+						} else { existe=false; }
+					} else {
+						escola_anterior = cbEscola.selectedItem.ID;
+						Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID);
+						bEditar.visible=false;
+						bExcluir.visible=false;
+						this.ed=false;
+					}
+				} else {
+					Alert.buttonWidth = 80;
+					Alert.yesLabel = "SIM";
+					Alert.noLabel = "NÃO";
+					if(fixar.selected){
+						Alert.show("Nenhum artigo cadastrado, deseja cadastrar o fixado?","Alerta!",Alert.YES|Alert.NO,null,alertListenerCadastro,null,Alert.NO);
+					} else {
+						Alert.show("Nenhum artigo cadastrado, deseja cadastrar um novo?","Alerta!",Alert.YES|Alert.NO,null,alertListenerCadastroNovo,null,Alert.NO);
+					}
+				}
+			}
+			
+			public function alertListenerCadastroNovo(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					novo();
+				}
+				else if (eventObj.detail==Alert.NO) {
+					fixar.selected=false;
+					for(var b:int;b<cbEscola.dataProvider.length;b++){
+						if(escola_anterior==cbEscola.dataProvider[b].ID){
+							cbEscola.selectedItem=cbEscola.dataProvider[b];
+						}
+					}
+					Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID);
+				}				
+				//bEditar.visible=false;
+				//bExcluir.visible=false;
+				//this.ed=false;
+			}
+
+			public function alertListenerCadastro(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					var obj:Array = new Array();
+					obj['ESCOLA'] = cbEscola.selectedItem.ID;
+					var artigo:Array = new Array();
+					artigo['ID'] = selectedArtigo;
+					artigo['DESCRICAO'] = 'novo';
+					var ar:Array = new Array();
+					ar['0'] = artigo;
+					obj['ARTIGOS'] = ar;
+					var vazio:ArrayCollection = new ArrayCollection();
+					dg.dataProvider = vazio;
+					Service.cadastrar(obj);
+				}
+				else if (eventObj.detail==Alert.NO) {
+					//fixar.selected=false;
+					for(var b:int;b<cbEscola.dataProvider.length;b++){
+						if(escola_anterior==cbEscola.dataProvider[b].ID){
+							cbEscola.selectedItem=cbEscola.dataProvider[b];
+						}
+					}
+				}				
+				//bEditar.visible=false;
+				//bExcluir.visible=false;
+				//this.ed=false;
+			}
+			
+			public function alertListenerCadastroFixado(eventObj:CloseEvent):void {
+				if (eventObj.detail==Alert.YES) { 
+					var obj:Array = new Array();
+					obj['ESCOLA'] = cbEscola.selectedItem.ID;
+					var artigo:Array = new Array();
+					artigo['ID'] = selectedArtigo;
+					artigo['DESCRICAO'] = 'novo';
+					var ar:Array = new Array();
+					ar['0'] = artigo;
+					obj['ARTIGOS'] = ar;
+					Service.cadastrar(obj);
+				}
+				else if (eventObj.detail==Alert.NO) {
+					//fixar.selected=false;
+					for(var b:int;b<cbEscola.dataProvider.length;b++){
+						if(escola_anterior==cbEscola.dataProvider[b].ID){
+							cbEscola.selectedItem=cbEscola.dataProvider[b];
+						}
+					}
+				}				
+				//bEditar.visible=false;
+				//bExcluir.visible=false;
+				//this.ed=false;
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<mx:RemoteObject id="Service" destination="amfphp" showBusyCursor="true" source="ProdutoService">
+			<mx:method name="listar" result="dg.dataProvider = event.result"/>
+			<mx:method name="cadastrar" result="ComboService.artigo(cbEscola.selectedItem.ID)"/>
+			<mx:method name="editar" result="Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID)"/>
+			<mx:method name="inserir" result="Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID)"/>
+			<mx:method name="copiar" result="ComboService.escola()"/>
+			<mx:method name="excluir" result="Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID)"/>
+		</mx:RemoteObject>
+		<mx:RemoteObject id="ComboService" destination="amfphp" showBusyCursor="true" source="ComboService">
+			<mx:method name="escola" result="resultHandlerComboEscola(event)"/>
+			<mx:method name="artigo" result="resultHandlerComboArtigo(event)"/>
+		</mx:RemoteObject>
+		<mx:RemoteObject id="LoteService" destination="amfphp" showBusyCursor="true" source="LoteService">
+			<mx:method name="cadastrar" result="ComboService.lote()"/>
+			<mx:method name="editar" result="ComboService.lote()"/>
+			<mx:method name="excluir" result="ComboService.lote()"/>
+		</mx:RemoteObject>
+	</fx:Declarations>
+	<s:HGroup width="100%" height="30" paddingBottom="5" paddingLeft="5" paddingRight="5"
+			  paddingTop="5" themeColor="#000000" verticalAlign="middle">
+	<mx:Label fontWeight="bold" text="Escola:"/>
+	<mx:ComboBox id="cbEscola" rowCount="20" width="276" labelField="DESCRICAO" change="ComboService.artigo(cbEscola.selectedItem.ID)"/>
+	<mx:Label fontWeight="bold" text="Artigo:"/>
+	<mx:ComboBox id="cbArtigo" rowCount="20" width="276" labelField="DESCRICAO" change="Service.listar(cbEscola.selectedItem.ID,cbArtigo.selectedItem.ID)"/>
+		<s:CheckBox id="fixar" label="Fixar artigo" click="selectedArtigo=cbArtigo.selectedItem.ID"/>
+	</s:HGroup>
+	<mx:DataGrid id="dg" itemClick="dgClick(event)" doubleClick="editar()" x="0" y="39" width="100%" height="100%" fontWeight="normal" variableRowHeight="true">
+		<mx:columns>
+			<mx:DataGridColumn dataField="INSUMO" headerText="INSUMO"/>
+			<mx:DataGridColumn dataField="PRECO" headerText="PREÇO" width="50"/>
+			<mx:DataGridColumn dataField="DOIS" headerText="02" width="48"/>
+			<mx:DataGridColumn dataField="QUATRO" headerText="04" width="48"/>
+			<mx:DataGridColumn dataField="SEIS" headerText="06" width="48"/>
+			<mx:DataGridColumn dataField="OITO" headerText="08" width="48"/>
+			<mx:DataGridColumn dataField="DEZ" headerText="10" width="48"/>
+			<mx:DataGridColumn dataField="DOZE" headerText="12" width="48"/>
+			<mx:DataGridColumn dataField="QUATORZE" headerText="14" width="48"/>
+			<mx:DataGridColumn dataField="DEZESSEIS" headerText="16" width="48"/>
+			<mx:DataGridColumn dataField="P" headerText="P" width="48"/>
+			<mx:DataGridColumn dataField="M" headerText="M" width="48"/>
+			<mx:DataGridColumn dataField="G" headerText="G" width="48"/>
+			<mx:DataGridColumn dataField="XG" headerText="XG" width="48"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:ControlBar id="cb">
+		<mx:Button label="Novo" click="novo()"/>
+		<mx:Button label="Editar" id="bEditar" visible="false" click="editar()"/>
+		<mx:Button label="Excluir" id="bExcluir" visible="false" click="excluir()"/>
+		<mx:Button label="Copiar" id="bCopiar" visible="true" click="copiar()"/>
+		<mx:Button label="Inserir Insumo(s)" id="bInserir" visible="true" click="inserir()"/>
+	</mx:ControlBar>
+</components:SuperPanel>
