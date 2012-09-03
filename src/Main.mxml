@@ -101,14 +101,10 @@
 					
 			protected function init(event:FlexEvent):void
 			{	
-				var dat:Date = new Date();
-				var hora:int = dat.hours;
-				var minuto:String = dat.minutes.toString().length<2 ? "0"+dat.minutes : dat.minutes.toString();
-				var segundo:String = dat.seconds.toString().length<2 ? "0"+dat.seconds : dat.seconds.toString();
-				var dia:String = dat.date.toString().length<2 ? "0"+dat.date : dat.date.toString();
-				var mes:String = dat.month.toString().length<2 ? "0"+dat.month : dat.month.toString();
-				var ano:int = dat.fullYear;
-				atualizacao.text = "última atualização em "+dia+"/"+mes+"/"+ano+" - "+hora+":"+minuto;
+				var loader:URLLoader = new URLLoader();
+				loader.dataFormat = URLLoaderDataFormat.VARIABLES;
+				loader.load(new URLRequest("versao.txt"));
+				loader.addEventListener(Event.COMPLETE, handleComplete);
 				panels = new Array();	
 				
 				//Produção
@@ -147,6 +143,22 @@
 				}
 			}
 						
+			protected function handleComplete(event:Event):void
+			{
+				var resposta:URLLoader = URLLoader(event.target);
+				var d:String = resposta.data.data;
+				var h:String = resposta.data.hora;
+				//var dat:Date = new Date();
+				//var hora:int = dat.hours;
+				//var minuto:String = dat.minutes.toString().length<2 ? "0"+dat.minutes : dat.minutes.toString();
+				//var segundo:String = dat.seconds.toString().length<2 ? "0"+dat.seconds : dat.seconds.toString();
+				//var dia:String = dat.date.toString().length<2 ? "0"+dat.date : dat.date.toString();
+				//var mes:String = dat.month.toString().length<2 ? "0"+dat.month : dat.month.toString();
+				//var ano:int = dat.fullYear;
+				//atualizacao.text = "última atualização em "+dia+"/"+mes+"/"+ano+" - "+hora+":"+minuto;				
+				atualizacao.text = "última atualização em "+d+" - "+h;
+			}
+			
 		]]>
 	</mx:Script>
 	
